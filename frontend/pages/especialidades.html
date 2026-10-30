@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Especialidades | PEP</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <script src="../js/app.js" defer>
+    </script>
+  </head>
+  <body>
+    <aside class="sidebar">
+      <a class="brand" href="painel.html"><span class="mark" aria-hidden="true">+</span> pep<span style="color:var(--primary)">.</span></a>
+      <p class="brand-caption">Prontuário eletrônico</p>
+      <nav aria-label="Navegação principal">
+        <a href="painel.html">Visão geral</a>
+        <a href="agenda.html">Agenda</a>
+        <a href="pacientes.html">Pacientes</a>
+        <a href="medicos.html">Médicos</a>
+        <a href="especialidades.html" class="active" aria-current="page">Especialidades</a>
+        <a href="convenios.html">Convênios</a>
+        <a href="faturamento.html">Faturamento</a>
+      </nav>
+      <div class="sidebar-footer">
+        Ambiente de demonstração
+        <br>
+        Dados inteiramente fictícios
+        <br>
+        <a href="../index.html">Sair da demonstração →</a>
+      </div>
+    </aside>
+    <div class="workspace">
+      <header class="topbar">
+        <span>Clínica PEP <span class="muted"> / Área administrativa</span></span>
+        <span><span class="avatar">AC</span>Ana · Administração</span>
+      </header>
+      <main id="conteudo">
+        <div class="page-heading">
+          <div>
+            <p class="eyebrow">Cuidado em cada detalhe</p>
+            <h1>Especialidades</h1>
+            <p>Mantenha os cadastros de apoio atualizados.</p>
+          </div>
+        </div>
+        <section class="card">
+          <h2>Cadastros disponíveis</h2>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">
+                    Especialidade
+                  </th>
+                  <th scope="col">
+                    Descrição
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    Clínica geral
+                  </td>
+                  <td>
+                    Atendimento clínico geral
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    Cardiologia
+                  </td>
+                  <td>
+                    Saúde cardiovascular
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    Dermatologia
+                  </td>
+                  <td>
+                    Saúde da pele
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+        <section class="card">
+          <h2>Novo cadastro</h2>
+          <form data-demo>
+            <div class="form-grid">
+              <label>
+                Nome da especialidade
+                <input name="nome" type="text" required>
+              </label>
+              <label>
+                Descrição
+                <input name="descricao" type="text" required>
+              </label>
+            </div>
+            <div class="actions">
+              <button type="submit">Salvar cadastro</button>
+            </div>
+            <p class="feedback" role="status"></p>
+          </form>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entrar | PEP</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="js/app.js" defer>
+    </script>
+  </head>
+  <body>
+    <main class="login" style="padding:0;max-width:none;margin:0">
+      <section class="login-story">
+        <a href="index.html" class="brand"><span class="mark" aria-hidden="true">+</span> pep.</a>
+        <p class="eyebrow" style="color:#b9d9cd">Prontuário eletrônico do paciente</p>
+        <h1>Mais conexão.<br>Mais cuidado.</h1>
+        <p>Uma rotina mais leve para a clínica. Uma história de cuidado mais completa para cada paciente.</p>
+        <small style="color:#b9d9cd">PEP · Projeto Banco de Dados II · UFAL</small>
+      </section>
+      <section class="login-form" aria-labelledby="login-title">
+        <form id="login-form">
+          <p class="eyebrow">Bem-vindo ao PEP</p>
+          <h1 id="login-title">Seu espaço de cuidado.</h1>
+          <p class="muted">Escolha um perfil para conhecer as telas.</p>
+          <label>
+            E-mail
+            <input type="email" name="email" autocomplete="username" placeholder="voce@clinica.com.br" required>
+          </label>
+          <label>
+            Senha
+            <input type="password" name="senha" autocomplete="current-password" minlength="6" required>
+          </label>
+          <label>
+            Perfil de demonstração
+            <select name="perfil">
+              <option value="painel">Administrativo</option>
+              <option value="painel-medico">Médico</option>
+            </select>
+          </label>
+          <button type="submit">Entrar na demonstração →</button>
+          <small>Protótipo visual sem autenticação. Use um e-mail fictício e qualquer senha de 6 caracteres. Não informe credenciais reais.</small>
+        </form>
+      </section>
+    </main>
+  </body>
+</html>

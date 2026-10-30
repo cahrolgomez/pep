@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Histórico do paciente | PEP</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <script src="../js/app.js" defer>
+    </script>
+  </head>
+  <body>
+    <aside class="sidebar">
+      <a class="brand" href="painel-medico.html"><span class="mark" aria-hidden="true">+</span> pep<span style="color:var(--primary)">.</span></a>
+      <p class="brand-caption">Prontuário eletrônico</p>
+      <nav aria-label="Navegação principal">
+        <a href="painel-medico.html">Minha agenda</a>
+        <a href="historico.html" class="active" aria-current="page">Histórico do paciente</a>
+        <a href="prontuario.html">Atendimento</a>
+      </nav>
+      <div class="sidebar-footer">
+        Ambiente de demonstração
+        <br>
+        Dados inteiramente fictícios
+        <br>
+        <a href="../index.html">Sair da demonstração →</a>
+      </div>
+    </aside>
+    <div class="workspace">
+      <header class="topbar">
+        <span>Clínica PEP <span class="muted"> / Área médica</span></span>
+        <span><span class="avatar">LC</span>Dra. Laura Costa</span>
+      </header>
+      <main id="conteudo">
+        <div class="page-heading">
+          <div>
+            <p class="eyebrow">Cuidado em cada detalhe</p>
+            <h1>Histórico do paciente</h1>
+            <p>Uma visão contínua da jornada de cuidado.</p>
+          </div>
+        </div>
+        <section class="card">
+          <h2>Identificação</h2>
+          <div class="patient">
+            <span class="avatar">MO</span>
+            <div>
+              <h2>Marina Oliveira</h2>
+              <span class="muted">Paciente demonstrativa · 34 anos · Vida Saúde</span>
+            </div>
+          </div>
+        </section>
+        <section class="card">
+          <h2>Linha do tempo</h2>
+          <div class="timeline">
+            <article>
+              <p class="eyebrow">30 OUT 2026 · Clínica geral</p>
+              <h3>Consulta em andamento</h3>
+              <p class="muted">Dra. Laura Costa · Atendimento ATD-003</p>
+              <a class="" href="prontuario.html">Abrir prontuário</a>
+            </article>
+            <article>
+              <p class="eyebrow">12 SET 2026 · Clínica geral</p>
+              <h3>Consulta de acompanhamento</h3>
+              <p class="muted">Dra. Laura Costa · Atendimento concluído</p>
+              <details>
+                <summary>Ver registro demonstrativo</summary>
+                <p>Evolução, prescrições e exames disponíveis no prontuário para profissionais autorizados.</p>
+              </details>
+            </article>
+          </div>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>

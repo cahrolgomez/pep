@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastrar paciente | PEP</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <script src="../js/app.js" defer>
+    </script>
+  </head>
+  <body>
+    <aside class="sidebar">
+      <a class="brand" href="painel.html"><span class="mark" aria-hidden="true">+</span> pep<span style="color:var(--primary)">.</span></a>
+      <p class="brand-caption">Prontuário eletrônico</p>
+      <nav aria-label="Navegação principal">
+        <a href="painel.html">Visão geral</a>
+        <a href="agenda.html">Agenda</a>
+        <a href="pacientes.html">Pacientes</a>
+        <a href="medicos.html">Médicos</a>
+        <a href="especialidades.html">Especialidades</a>
+        <a href="convenios.html">Convênios</a>
+        <a href="faturamento.html">Faturamento</a>
+      </nav>
+      <div class="sidebar-footer">
+        Ambiente de demonstração
+        <br>
+        Dados inteiramente fictícios
+        <br>
+        <a href="../index.html">Sair da demonstração →</a>
+      </div>
+    </aside>
+    <div class="workspace">
+      <header class="topbar">
+        <span>Clínica PEP <span class="muted"> / Área administrativa</span></span>
+        <span><span class="avatar">AC</span>Ana · Administração</span>
+      </header>
+      <main id="conteudo">
+        <div class="page-heading">
+          <div>
+            <p class="eyebrow">Cuidado em cada detalhe</p>
+            <h1>Cadastrar paciente</h1>
+            <p>Preencha os dados de identificação e contato.</p>
+          </div>
+        </div>
+        <section class="card">
+          <h2>Identificação e contato</h2>
+          <form data-demo>
+            <div class="form-grid">
+              <label>
+                Nome completo
+                <input name="nome" type="text" required>
+              </label>
+              <label>
+                CPF
+                <input name="cpf" type="text" required>
+              </label>
+              <label>
+                Data de nascimento
+                <input name="nascimento" type="date" required>
+              </label>
+              <label>
+                Telefone
+                <input name="telefone" type="tel" required>
+              </label>
+              <label>
+                E-mail
+                <input name="email" type="email" required>
+              </label>
+              <label>
+                Endereço
+                <input name="endereco" type="text" required>
+              </label>
+              <label>
+                Convênio
+                <select name="convenio" required>
+                  <option>Particular</option>
+                  <option>Vida Saúde</option>
+                  <option>Bem Cuidar</option>
+                </select>
+              </label>
+              <label>
+                Número da carteirinha
+                <input name="carteirinha" type="text" required>
+              </label>
+            </div>
+            <div class="actions">
+              <button type="submit">Salvar cadastro</button>
+            </div>
+            <p class="feedback" role="status"></p>
+          </form>
+        </section>
+        <p class="muted">A regularidade do CPF deverá ser consultada pela integração do sistema; esta tela não realiza essa verificação.</p>
+      </main>
+    </div>
+  </body>
+</html>

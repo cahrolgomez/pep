@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agenda de consultas | PEP</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <script src="../js/app.js" defer>
+    </script>
+  </head>
+  <body>
+    <aside class="sidebar">
+      <a class="brand" href="painel.html"><span class="mark" aria-hidden="true">+</span> pep<span style="color:var(--primary)">.</span></a>
+      <p class="brand-caption">Prontuário eletrônico</p>
+      <nav aria-label="Navegação principal">
+        <a href="painel.html">Visão geral</a>
+        <a href="agenda.html" class="active" aria-current="page">Agenda</a>
+        <a href="pacientes.html">Pacientes</a>
+        <a href="medicos.html">Médicos</a>
+        <a href="especialidades.html">Especialidades</a>
+        <a href="convenios.html">Convênios</a>
+        <a href="faturamento.html">Faturamento</a>
+      </nav>
+      <div class="sidebar-footer">
+        Ambiente de demonstração
+        <br>
+        Dados inteiramente fictícios
+        <br>
+        <a href="../index.html">Sair da demonstração →</a>
+      </div>
+    </aside>
+    <div class="workspace">
+      <header class="topbar">
+        <span>Clínica PEP <span class="muted"> / Área administrativa</span></span>
+        <span><span class="avatar">AC</span>Ana · Administração</span>
+      </header>
+      <main id="conteudo">
+        <div class="page-heading">
+          <div>
+            <p class="eyebrow">Cuidado em cada detalhe</p>
+            <h1>Agenda de consultas</h1>
+            <p>Organize horários, profissionais e atendimentos.</p>
+          </div>
+          <a class="button" href="novo-agendamento.html">+ Agendar consulta</a>
+        </div>
+        <section class="card">
+          <h2>Consultar agenda</h2>
+          <form class="toolbar" data-filter>
+            <label>
+              Data
+              <input name="data" type="date" required>
+            </label>
+            <label>
+              Profissional
+              <select name="medico" required>
+                <option>Todos os profissionais</option>
+                <option>Dra. Laura Costa</option>
+                <option>Dr. Rafael Lima</option>
+              </select>
+            </label>
+            <button>Consultar</button>
+            <p class="feedback" role="status"></p>
+          </form>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">
+                    Horário
+                  </th>
+                  <th scope="col">
+                    Paciente
+                  </th>
+                  <th scope="col">
+                    Profissional
+                  </th>
+                  <th scope="col">
+                    Especialidade
+                  </th>
+                  <th scope="col">
+                    Situação
+                  </th>
+                  <th scope="col">
+                    Ação
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    08:00
+                  </td>
+                  <td>
+                    Marina Oliveira
+                  </td>
+                  <td>
+                    Dra. Laura Costa
+                  </td>
+                  <td>
+                    Clínica geral
+                  </td>
+                  <td>
+                    <span class="badge">Confirmado</span>
+                  </td>
+                  <td>
+                    <a class="" href="prontuario.html">Abrir atendimento</a>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    08:30
+                  </td>
+                  <td>
+                    Pedro Almeida
+                  </td>
+                  <td>
+                    Dr. Rafael Lima
+                  </td>
+                  <td>
+                    Cardiologia
+                  </td>
+                  <td>
+                    <span class="badge pending">Aguardando</span>
+                  </td>
+                  <td>
+                    <a class="" href="historico.html">Ver histórico</a>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    09:00
+                  </td>
+                  <td>
+                    Beatriz Santos
+                  </td>
+                  <td>
+                    Dra. Laura Costa
+                  </td>
+                  <td>
+                    Clínica geral
+                  </td>
+                  <td>
+                    <span class="badge">Confirmado</span>
+                  </td>
+                  <td>
+                    <a class="" href="historico.html">Ver histórico</a>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>
