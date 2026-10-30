@@ -7,7 +7,8 @@ Base local de desenvolvimento: FastAPI, PostgreSQL 16, MongoDB 7 e Redis 7.
 Instale e abra o Docker Desktop com suporte a containers Linux. Na pasta do projeto, execute no PowerShell:
 
 ```powershell
-Copy-Item .env.example .env
+if (!(Test-Path .env)) { Copy-Item .env.example .env }
+docker compose config --quiet
 docker compose up --build -d
 docker compose ps
 ```
@@ -18,6 +19,8 @@ O arquivo `.env` contém credenciais locais de exemplo e não é versionado. Alt
 - Documentação interativa: http://localhost:8000/docs
 - Processo ativo: http://localhost:8000/health
 - Conexões aos bancos: http://localhost:8000/health/ready
+
+Os serviços reiniciam automaticamente após falhas ou reinicialização do Docker, salvo quando parados manualmente. A API aguarda as verificações de saúde dos bancos na inicialização.
 
 Somente a API publica uma porta, restrita ao próprio computador. Os bancos são acessíveis pelos serviços dentro da rede do Compose. O código em `backend/app` é atualizado automaticamente durante o desenvolvimento.
 
