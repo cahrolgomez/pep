@@ -120,20 +120,5 @@ export default function Painel() {
             </table>
           </div>
         </section>
-        <div className="grid">
-          <section className="card">
-            <h2>Uma rotina mais simples</h2>
-            <p className="muted">Do primeiro cadastro ao fechamento do mês, cada etapa do cuidado no mesmo lugar.</p>
-            <div className="actions">
-              <Link className="button secondary" to="/novo-paciente">Cadastrar paciente</Link>
-              <Link className="button secondary" to="/novo-agendamento">Agendar consulta</Link>
-            </div>
-          </section>
-          <section className="card">
-            <h2>Fechamento de outubro</h2>
-            <p className="muted">Consulte os atendimentos e revise as pendências antes de concluir o período.</p>
-            <Link className="" to="/faturamento">Consultar faturamento</Link>
-          </section>
-        </div>
       </AppLayout>;
 }

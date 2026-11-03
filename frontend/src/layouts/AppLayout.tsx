@@ -24,7 +24,7 @@ export function AppLayout({
   return (
     <>
       <aside className="sidebar">
-        <Link className="brand sidebar-brand" to={medical ? "/painel-medico" : "/painel"}>
+        <Link className="sidebar-brand" to={medical ? "/painel-medico" : "/painel"}>
           <img src="/logo-pep.jpeg" alt="PEP - Prontuário Eletrônico do Paciente" />
         </Link>
         <nav aria-label="Navegação principal">
