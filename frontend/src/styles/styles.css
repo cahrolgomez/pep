@@ -84,6 +84,16 @@ small,.muted {
   color: var(--ink);
 }
 
+.sidebar-brand {
+  margin-bottom: 36px;
+}
+
+.sidebar-brand img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
 .mark {
   display: grid;
   place-items: center;
@@ -194,9 +204,13 @@ main {
 
 .stats {
   display: grid;
-  grid-template-columns: repeat(4,minmax(0,1fr));
+  grid-template-columns: repeat(3,minmax(0,1fr));
   gap: 18px;
   margin-bottom: 26px;
+}
+
+.stats-medical {
+  grid-template-columns: repeat(4,minmax(0,1fr));
 }
 
 .stat {

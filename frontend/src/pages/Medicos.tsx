@@ -1,50 +1,19 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Equipe médica | PEP</title>
-    <link rel="stylesheet" href="../css/styles.css">
-    <script src="../js/app.js" defer>
-    </script>
-  </head>
-  <body>
-    <aside class="sidebar">
-      <a class="brand" href="painel.html"><span class="mark" aria-hidden="true">+</span> pep<span style="color:var(--primary)">.</span></a>
-      <p class="brand-caption">Prontuário eletrônico</p>
-      <nav aria-label="Navegação principal">
-        <a href="painel.html">Visão geral</a>
-        <a href="agenda.html">Agenda</a>
-        <a href="pacientes.html">Pacientes</a>
-        <a href="medicos.html" class="active" aria-current="page">Médicos</a>
-        <a href="especialidades.html">Especialidades</a>
-        <a href="convenios.html">Convênios</a>
-        <a href="faturamento.html">Faturamento</a>
-      </nav>
-      <div class="sidebar-footer">
-        Ambiente de demonstração
-        <br>
-        Dados inteiramente fictícios
-        <br>
-        <a href="../index.html">Sair da demonstração →</a>
-      </div>
-    </aside>
-    <div class="workspace">
-      <header class="topbar">
-        <span>Clínica PEP <span class="muted"> / Área administrativa</span></span>
-        <span><span class="avatar">AC</span>Ana · Administração</span>
-      </header>
-      <main id="conteudo">
-        <div class="page-heading">
+import { Link } from "react-router-dom";
+import { AppLayout } from "../layouts/AppLayout";
+import { DemoForm, SearchBody } from "../components/Demo";
+export default function Medicos() {
+ const search = "";
+ return <AppLayout medical={false}>
+        <div className="page-heading">
           <div>
-            <p class="eyebrow">Cuidado em cada detalhe</p>
+            <p className="eyebrow">Cuidado em cada detalhe</p>
             <h1>Equipe médica</h1>
             <p>Profissionais e especialidades da clínica.</p>
           </div>
         </div>
-        <section class="card">
+        <section className="card">
           <h2>Profissionais cadastrados</h2>
-          <div class="table-wrap">
+          <div className="table-wrap">
             <table>
               <thead>
                 <tr>
@@ -62,7 +31,7 @@
                   </th>
                 </tr>
               </thead>
-              <tbody>
+              <SearchBody search={search}>
                 <tr>
                   <td>
                     Dra. Laura Costa
@@ -91,21 +60,21 @@
                     Ativo
                   </td>
                 </tr>
-              </tbody>
+              </SearchBody>
             </table>
           </div>
         </section>
-        <section class="card">
+        <section className="card">
           <h2>Cadastrar profissional</h2>
-          <form data-demo>
-            <div class="form-grid">
+          <DemoForm demo>
+            <div className="form-grid">
               <label>
                 Nome completo
-                <input name="nome" type="text" required>
+                <input name="nome" type="text" required />
               </label>
               <label>
                 CRM
-                <input name="crm" type="text" required>
+                <input name="crm" type="text" required />
               </label>
               <label>
                 UF do CRM
@@ -126,20 +95,17 @@
               </label>
               <label>
                 E-mail
-                <input name="email" type="email" required>
+                <input name="email" type="email" required />
               </label>
               <label>
                 Telefone
-                <input name="telefone" type="tel" required>
+                <input name="telefone" type="tel" required />
               </label>
             </div>
-            <div class="actions">
+            <div className="actions">
               <button type="submit">Salvar cadastro</button>
             </div>
-            <p class="feedback" role="status"></p>
-          </form>
+          </DemoForm>
         </section>
-      </main>
-    </div>
-  </body>
-</html>
+      </AppLayout>;
+}

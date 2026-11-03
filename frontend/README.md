@@ -1,32 +1,38 @@
 # Front-end do PEP
 
-Protótipo em HTML, CSS e JavaScript puro, baseado nos requisitos e no fluxo de navegação da apresentação executiva do MVP.
+Aplicação React com TypeScript e Vite. Preserva as telas e a identidade visual do protótipo.
 
-## Abrir
+## Executar
 
-Abra `index.html` no navegador. Não exige instalação, compilação ou conexão externa. No login demonstrativo, use dados fictícios e selecione o perfil administrativo ou médico.
+Requer Node.js e npm. Na pasta `frontend`:
+
+```powershell
+npm install
+npm run dev
+```
+
+Abra o endereço informado pelo Vite (normalmente http://localhost:5173).
+
+```powershell
+npm run build
+npm run preview
+```
+
+O build verifica os tipos e gera `dist/`. Ao hospedar, configure o servidor para responder com `index.html` nas rotas da aplicação.
 
 ## Organização
 
-- `index.html`: entrada e seleção de perfil demonstrativo.
-- `pages/`: páginas HTML completas e independentes.
-- `css/styles.css`: identidade visual, estrutura, componentes, formulários, login e responsividade em seções comentadas.
-- `js/app.js`: navegação de login, busca local e feedback das simulações.
-- `src/` e `public/`: pastas da organização anterior, reservadas para evolução futura.
+- `src/pages`: login, painéis, agenda, pacientes, médicos, especialidades, convênios, prontuário, histórico e faturamento.
+- `src/layouts/AppLayout.tsx`: navegação e cabeçalho compartilhados.
+- `src/components/Demo.tsx`: formulários demonstrativos e busca local das tabelas.
+- `src/routes/App.tsx`: rotas da aplicação.
+- `src/styles/styles.css`: estilos e responsividade.
+- `src/services/api.ts`: cliente para futuros endpoints. Em desenvolvimento, Vite encaminha `/api` para `http://localhost:8000`.
+- `index.html`: ponto de entrada usado pelo Vite para carregar a aplicação React.
 
-## Telas e requisitos
+## Demonstração
 
-- Painel administrativo e agenda: RF01 a RF03.
-- Listagem e cadastro de pacientes: RF04 e RF05.
-- Consulta e cadastro de médicos: RF06 e RF07.
-- Especialidades e convênios: cadastros previstos no fluxo administrativo.
-- Painel médico, prontuário e histórico: RF08 a RF11, com evolução, prescrições, exames, anexos e informações específicas da especialidade.
-- Faturamento: RF12 e RF13, com registro, consulta por período e fechamento mensal demonstrativos.
+Use e-mail fictício e senha com pelo menos seis caracteres, selecionando o perfil administrativo ou médico. O login apenas navega e não autentica. A busca de pacientes funciona localmente. Formulários e fechamento mostram feedback, sem salvar dados. Filtros de data e convênio permanecem demonstrativos; anexos não são enviados.
 
-## Identidade visual
+O backend ainda precisa dos endpoints de cadastros, autenticação, consultas e prontuários. Os dados exibidos são fictícios. Para produção, configure também o encaminhamento de `/api` ao backend.
 
-Verde profundo para ações e navegação, fundo claro, cartões brancos, tipografia do sistema e espaçamento consistente. Layout responsivo, campos rotulados e tabelas com rolagem em telas pequenas. Sem fontes ou bibliotecas externas.
-
-## Limites do protótipo
-
-Todos os dados são fictícios. Formulários exibem feedback e não persistem dados. Filtros de data e convênio são apenas visuais; a busca de pacientes funciona localmente. O login apenas navega entre telas e não implementa autorização. A seleção de anexos não faz upload. A regularidade do CPF, horários realmente disponíveis, prevenção de duplicidades, autorização de prontuários, faturamento e fechamento transacional precisam ser implementados na API. Este protótipo não demonstra conformidade com a LGPD ou segurança de produção.

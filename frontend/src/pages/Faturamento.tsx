@@ -1,57 +1,28 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Faturamento | PEP</title>
-    <link rel="stylesheet" href="../css/styles.css">
-    <script src="../js/app.js" defer>
-    </script>
-  </head>
-  <body>
-    <aside class="sidebar">
-      <a class="brand" href="painel.html"><span class="mark" aria-hidden="true">+</span> pep<span style="color:var(--primary)">.</span></a>
-      <p class="brand-caption">Prontuário eletrônico</p>
-      <nav aria-label="Navegação principal">
-        <a href="painel.html">Visão geral</a>
-        <a href="agenda.html">Agenda</a>
-        <a href="pacientes.html">Pacientes</a>
-        <a href="medicos.html">Médicos</a>
-        <a href="especialidades.html">Especialidades</a>
-        <a href="convenios.html">Convênios</a>
-        <a href="faturamento.html" class="active" aria-current="page">Faturamento</a>
-      </nav>
-      <div class="sidebar-footer">
-        Ambiente de demonstração
-        <br>
-        Dados inteiramente fictícios
-        <br>
-        <a href="../index.html">Sair da demonstração →</a>
-      </div>
-    </aside>
-    <div class="workspace">
-      <header class="topbar">
-        <span>Clínica PEP <span class="muted"> / Área administrativa</span></span>
-        <span><span class="avatar">AC</span>Ana · Administração</span>
-      </header>
-      <main id="conteudo">
-        <div class="page-heading">
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { AppLayout } from "../layouts/AppLayout";
+import { DemoForm, SearchBody } from "../components/Demo";
+export default function Faturamento() {
+ const search = "";
+ const [closing, setClosing] = useState(false);
+ return <AppLayout medical={false}>
+        <div className="page-heading">
           <div>
-            <p class="eyebrow">Cuidado em cada detalhe</p>
+            <p className="eyebrow">Cuidado em cada detalhe</p>
             <h1>Faturamento</h1>
             <p>Consulte atendimentos e acompanhe o fechamento por período.</p>
           </div>
         </div>
-        <section class="card">
+        <section className="card">
           <h2>Período de referência</h2>
-          <form data-filter class="toolbar">
+          <DemoForm filter className="toolbar">
             <label>
               De
-              <input name="inicio" type="date" required>
+              <input name="inicio" type="date" required />
             </label>
             <label>
               Até
-              <input name="fim" type="date" required>
+              <input name="fim" type="date" required />
             </label>
             <label>
               Convênio
@@ -63,34 +34,33 @@
               </select>
             </label>
             <button>Consultar período</button>
-            <p class="feedback" role="status"></p>
-          </form>
+          </DemoForm>
         </section>
-        <div class="stats">
-          <article class="card stat">
-            <span class="muted">Total realizado</span>
+        <div className="stats">
+          <article className="card stat">
+            <span className="muted">Total realizado</span>
             <strong>R$ 8.450</strong>
             <small>42 atendimentos</small>
           </article>
-          <article class="card stat">
-            <span class="muted">Convênios</span>
+          <article className="card stat">
+            <span className="muted">Convênios</span>
             <strong>R$ 6.300</strong>
             <small>32 atendimentos</small>
           </article>
-          <article class="card stat">
-            <span class="muted">Particular</span>
+          <article className="card stat">
+            <span className="muted">Particular</span>
             <strong>R$ 2.150</strong>
             <small>10 atendimentos</small>
           </article>
-          <article class="card stat">
-            <span class="muted">Pendentes</span>
+          <article className="card stat">
+            <span className="muted">Pendentes</span>
             <strong>2</strong>
             <small>Aguardando revisão</small>
           </article>
         </div>
-        <section class="card">
+        <section className="card">
           <h2>Atendimentos para faturamento</h2>
-          <div class="table-wrap">
+          <div className="table-wrap">
             <table>
               <thead>
                 <tr>
@@ -114,7 +84,7 @@
                   </th>
                 </tr>
               </thead>
-              <tbody>
+              <SearchBody search={search}>
                 <tr>
                   <td>
                     ATD-001
@@ -155,14 +125,14 @@
                     Registrado
                   </td>
                 </tr>
-              </tbody>
+              </SearchBody>
             </table>
           </div>
         </section>
-        <section class="card">
+        <section className="card">
           <h2>Registrar faturamento</h2>
-          <form data-demo>
-            <div class="form-grid">
+          <DemoForm demo>
+            <div className="form-grid">
               <label>
                 Atendimento concluído
                 <select name="atendimento" required>
@@ -172,7 +142,7 @@
               </label>
               <label>
                 Valor (R$)
-                <input name="valor" type="number" required>
+                <input name="valor" type="number" required />
               </label>
               <label>
                 Convênio
@@ -183,19 +153,16 @@
                 </select>
               </label>
             </div>
-            <div class="actions">
+            <div className="actions">
               <button type="submit">Simular registro</button>
             </div>
-            <p class="feedback" role="status"></p>
-          </form>
+          </DemoForm>
         </section>
-        <section class="card">
+        <section className="card">
           <h2>Fechamento mensal</h2>
-          <p class="muted">Revise os atendimentos e as pendências antes de consolidar as cobranças.</p>
-          <button type="button" data-close>Simular fechamento de outubro</button>
-          <p role="status" class="feedback" id="closing-feedback"></p>
+          <p className="muted">Revise os atendimentos e as pendências antes de consolidar as cobranças.</p>
+          <button type="button" onClick={() => setClosing(true)}>Simular fechamento de outubro</button>
+          <p role="status" className="feedback" id="closing-feedback">{closing ? "Simulação de fechamento concluída. Nenhuma cobrança foi gerada." : ""}</p>
         </section>
-      </main>
-    </div>
-  </body>
-</html>
+      </AppLayout>;
+}

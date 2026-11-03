@@ -1,54 +1,23 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agenda de consultas | PEP</title>
-    <link rel="stylesheet" href="../css/styles.css">
-    <script src="../js/app.js" defer>
-    </script>
-  </head>
-  <body>
-    <aside class="sidebar">
-      <a class="brand" href="painel.html"><span class="mark" aria-hidden="true">+</span> pep<span style="color:var(--primary)">.</span></a>
-      <p class="brand-caption">Prontuário eletrônico</p>
-      <nav aria-label="Navegação principal">
-        <a href="painel.html">Visão geral</a>
-        <a href="agenda.html" class="active" aria-current="page">Agenda</a>
-        <a href="pacientes.html">Pacientes</a>
-        <a href="medicos.html">Médicos</a>
-        <a href="especialidades.html">Especialidades</a>
-        <a href="convenios.html">Convênios</a>
-        <a href="faturamento.html">Faturamento</a>
-      </nav>
-      <div class="sidebar-footer">
-        Ambiente de demonstração
-        <br>
-        Dados inteiramente fictícios
-        <br>
-        <a href="../index.html">Sair da demonstração →</a>
-      </div>
-    </aside>
-    <div class="workspace">
-      <header class="topbar">
-        <span>Clínica PEP <span class="muted"> / Área administrativa</span></span>
-        <span><span class="avatar">AC</span>Ana · Administração</span>
-      </header>
-      <main id="conteudo">
-        <div class="page-heading">
+import { Link } from "react-router-dom";
+import { AppLayout } from "../layouts/AppLayout";
+import { DemoForm, SearchBody } from "../components/Demo";
+export default function Agenda() {
+ const search = "";
+ return <AppLayout medical={false}>
+        <div className="page-heading">
           <div>
-            <p class="eyebrow">Cuidado em cada detalhe</p>
+            <p className="eyebrow">Cuidado em cada detalhe</p>
             <h1>Agenda de consultas</h1>
             <p>Organize horários, profissionais e atendimentos.</p>
           </div>
-          <a class="button" href="novo-agendamento.html">+ Agendar consulta</a>
+          <Link className="button" to="/novo-agendamento">+ Agendar consulta</Link>
         </div>
-        <section class="card">
+        <section className="card">
           <h2>Consultar agenda</h2>
-          <form class="toolbar" data-filter>
+          <DemoForm className="toolbar" filter>
             <label>
               Data
-              <input name="data" type="date" required>
+              <input name="data" type="date" required />
             </label>
             <label>
               Profissional
@@ -59,9 +28,8 @@
               </select>
             </label>
             <button>Consultar</button>
-            <p class="feedback" role="status"></p>
-          </form>
-          <div class="table-wrap">
+          </DemoForm>
+          <div className="table-wrap">
             <table>
               <thead>
                 <tr>
@@ -85,7 +53,7 @@
                   </th>
                 </tr>
               </thead>
-              <tbody>
+              <SearchBody search={search}>
                 <tr>
                   <td>
                     08:00
@@ -100,10 +68,10 @@
                     Clínica geral
                   </td>
                   <td>
-                    <span class="badge">Confirmado</span>
+                    <span className="badge">Confirmado</span>
                   </td>
                   <td>
-                    <a class="" href="prontuario.html">Abrir atendimento</a>
+                    <Link className="" to="/prontuario">Abrir atendimento</Link>
                   </td>
                 </tr>
                 <tr>
@@ -120,10 +88,10 @@
                     Cardiologia
                   </td>
                   <td>
-                    <span class="badge pending">Aguardando</span>
+                    <span className="badge pending">Aguardando</span>
                   </td>
                   <td>
-                    <a class="" href="historico.html">Ver histórico</a>
+                    <Link className="" to="/historico">Ver histórico</Link>
                   </td>
                 </tr>
                 <tr>
@@ -140,17 +108,15 @@
                     Clínica geral
                   </td>
                   <td>
-                    <span class="badge">Confirmado</span>
+                    <span className="badge">Confirmado</span>
                   </td>
                   <td>
-                    <a class="" href="historico.html">Ver histórico</a>
+                    <Link className="" to="/historico">Ver histórico</Link>
                   </td>
                 </tr>
-              </tbody>
+              </SearchBody>
             </table>
           </div>
         </section>
-      </main>
-    </div>
-  </body>
-</html>
+      </AppLayout>;
+}
