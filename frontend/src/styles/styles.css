@@ -27,10 +27,6 @@ a {
   text-decoration: none;
 }
 
-a:hover {
-  text-decoration: underline;
-}
-
 button,input,select,textarea {
   font: inherit;
 }
@@ -65,13 +61,25 @@ small,.muted {
 .sidebar
  {
   position: fixed;
-  width: 235px;
+  width: 252px;
   inset: 0 auto 0 0;
   background: var(--surface);
   border-right: 1px solid var(--line);
   padding: 32px 22px;
   display: flex;
   flex-direction: column;
+}
+
+.sidebar > nav > a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sidebar-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
 }
 
 .brand {

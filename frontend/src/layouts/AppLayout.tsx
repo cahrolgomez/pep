@@ -1,18 +1,18 @@
 import { NavLink, Link } from "react-router-dom";
 import type { ReactNode } from "react";
 const admin = [
-  ["painel", "Visão geral"],
-  ["agenda", "Agenda"],
-  ["pacientes", "Pacientes"],
-  ["medicos", "Médicos"],
-  ["especialidades", "Especialidades"],
-  ["convenios", "Convênios"],
-  ["faturamento", "Faturamento"],
+  ["painel", "Visão geral", "/icones/dashboard-svgrepo-com.svg"],
+  ["agenda", "Agenda", "/icones/agenda-handbook-note-svgrepo-com.svg"],
+  ["pacientes", "Pacientes", "/icones/patient-svgrepo-com.svg"],
+  ["medicos", "Médicos", "/icones/doctor-svgrepo-com.svg"],
+  ["especialidades", "Especialidades", "/icones/medical-medicine-health-3-svgrepo-com.svg"],
+  ["convenios", "Convênios", "/icones/health-insurance-finance-svgrepo-com.svg"],
+  ["faturamento", "Faturamento", "/icones/invoice-bill-svgrepo-com.svg"],
 ];
 const doctor = [
-  ["painel-medico", "Minha agenda"],
-  ["historico", "Histórico do paciente"],
-  ["prontuario", "Atendimento"],
+  ["painel-medico", "Minha agenda", "/icones/agenda-handbook-note-svgrepo-com.svg"],
+  ["historico", "Histórico do paciente", "/icones/user-history-svgrepo-com.svg"],
+  ["prontuario", "Atendimento", "/icones/service-svgrepo-com.svg"],
 ];
 export function AppLayout({
   medical = false,
@@ -28,12 +28,9 @@ export function AppLayout({
           <img src="/logo-pep.jpeg" alt="PEP - Prontuário Eletrônico do Paciente" />
         </Link>
         <nav aria-label="Navegação principal">
-          {(medical ? doctor : admin).map(([path, label]) => (
-            <NavLink
-              key={path}
-              to={"/" + path}
-              className={({ isActive }) => (isActive ? "active" : "")}
-            >
+          {(medical ? doctor : admin).map(([path, label, icon]) => (
+            <NavLink key={path} to={"/" + path} className={({ isActive }) => (isActive ? "active" : "")}>
+              {icon && <img src={icon} alt={label} className="sidebar-icon" />}
               {label}
             </NavLink>
           ))}
