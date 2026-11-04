@@ -52,3 +52,30 @@ backend/
 ```
 
 A base ainda não contém tabelas, cadastros, autenticação ou prontuários. Próxima etapa: definir a modelagem e adicionar migrações do PostgreSQL; depois implementar login, cadastros e agendamento. Separe novas rotas, regras de negócio e acesso aos bancos em módulos conforme forem implementados.
+
+
+## Comandos do bd
+
+Entrar no banco postgree
+
+```text 
+docker compose exec postgres psql -U pep -d pep
+```
+
+Listar tabelas
+
+```text 
+\dt
+```
+
+Acessar tabela
+
+```text 
+\d nome da tabela
+```
+
+Sair do banco 
+
+```text 
+\q
+```
