@@ -47,3 +47,23 @@ VALUES (
     'ativo',
     '123456'
 );
+
+INSERT INTO usuario (name, email, perfil, status, senha)
+VALUES (
+    'João Silva',
+    'joaosilva@pep.com',
+    'medico',
+    'ativo',
+    '123456'
+)
+RETURNING id_usuario;
+
+INSERT INTO usuario (name, email, perfil, status, senha)
+VALUES
+    ('Laura Costa', 'lauracosta@pep.com', 'medico', 'ativo', '123456'),
+    ('Rafael Lima', 'rafaellima@pep.com', 'medico', 'ativo', '123456');
+
+INSERT INTO medico (id_usuario, crm, telefone)
+VALUES
+    (3, '234567-AL', '82988888888'),
+    (4, '345678-AL', '82977777777');
