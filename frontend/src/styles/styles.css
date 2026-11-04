@@ -237,6 +237,11 @@ main {
   text-align: center;
 }
 
+.btn-consulta {
+  height: 40px;
+  margin-top: 28px;
+}
+
 .button:hover,button:hover {
   background: var(--primary-dark);
   text-decoration: none;
@@ -364,6 +369,41 @@ input,select,textarea {
   padding: 11px 12px;
   color: var(--ink);
   margin-top: 6px;
+}
+
+.select-status {
+  padding: 7px 10px;
+  border: 1px solid #dce5e2;
+  border-radius: 8px;
+  background: #fff;
+  color: #0E554C;
+  font-size: 13px;
+  cursor: pointer;
+  outline: none;
+}
+
+.select-status:focus {
+  border-color: #0E554C;
+}
+
+.select-status.confirmado {
+  background: #DDF3E5;
+  color: #237747;
+}
+
+.select-status.pendente {
+  background: #FFF1D6;
+  color: #956313;
+}
+
+.select-status.cancelado {
+  background: #FCE4E4;
+  color: #B53B3B;
+}
+
+.select-status.encerrado {
+  background: #E0F0FF;
+  color: #286090;
 }
 
 textarea {

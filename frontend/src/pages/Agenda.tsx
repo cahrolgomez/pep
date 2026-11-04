@@ -1,8 +1,21 @@
 import { Link } from "react-router-dom";
 import { AppLayout } from "../layouts/AppLayout";
 import { DemoForm, SearchBody } from "../components/Demo";
+import { useState } from "react";
 export default function Agenda() {
  const search = "";
+const [status, setStatus] = useState({
+  1: "pendente",
+  2: "pendente",
+  3: "pendente"
+});
+
+function atualizarStatus(id: number, novoStatus: string) {
+  setStatus((anterior) => ({
+    ...anterior,
+    [id]: novoStatus
+  }));
+}
  return <AppLayout medical={false}>
         <div className="page-heading">
           <div>
@@ -27,7 +40,7 @@ export default function Agenda() {
                 <option>Dr. Rafael Lima</option>
               </select>
             </label>
-            <button>Consultar</button>
+            <button className="btn-consulta">Consultar</button>
           </DemoForm>
           <div className="table-wrap">
             <table>
@@ -35,6 +48,9 @@ export default function Agenda() {
                 <tr>
                   <th scope="col">
                     Horário
+                  </th>
+                  <th scope="col">
+                    Data
                   </th>
                   <th scope="col">
                     Paciente
@@ -48,15 +64,15 @@ export default function Agenda() {
                   <th scope="col">
                     Situação
                   </th>
-                  <th scope="col">
-                    Ação
-                  </th>
                 </tr>
               </thead>
               <SearchBody search={search}>
                 <tr>
                   <td>
                     08:00
+                  </td>
+                  <td>
+                    16/11/2026
                   </td>
                   <td>
                     Marina Oliveira
@@ -68,15 +84,20 @@ export default function Agenda() {
                     Clínica geral
                   </td>
                   <td>
-                    <span className="badge">Confirmado</span>
-                  </td>
-                  <td>
-                    <Link className="" to="/prontuario">Abrir atendimento</Link>
+                    <select className={`select-status ${status[1]}`} value={status[1]} onChange={(e) => atualizarStatus(1, e.target.value)}>
+                      <option value="confirmado">Confirmado</option>
+                      <option value="pendente">Aguardando</option>
+                      <option value="cancelado">Cancelado</option>
+                      <option value="encerrado">Encerrado</option>
+                    </select>
                   </td>
                 </tr>
                 <tr>
                   <td>
                     08:30
+                  </td>
+                  <td>
+                    16/11/2026
                   </td>
                   <td>
                     Pedro Almeida
@@ -88,15 +109,20 @@ export default function Agenda() {
                     Cardiologia
                   </td>
                   <td>
-                    <span className="badge pending">Aguardando</span>
-                  </td>
-                  <td>
-                    <Link className="" to="/historico">Ver histórico</Link>
+                    <select className={`select-status ${status[2]}`} value={status[2]} onChange={(e) => atualizarStatus(2, e.target.value)}>
+                      <option value="confirmado">Confirmado</option>
+                      <option value="pendente">Aguardando</option>
+                      <option value="cancelado">Cancelado</option>
+                      <option value="encerrado">Encerrado</option>
+                    </select>
                   </td>
                 </tr>
                 <tr>
                   <td>
                     09:00
+                  </td>
+                  <td>
+                    16/11/2026
                   </td>
                   <td>
                     Beatriz Santos
@@ -108,10 +134,12 @@ export default function Agenda() {
                     Clínica geral
                   </td>
                   <td>
-                    <span className="badge">Confirmado</span>
-                  </td>
-                  <td>
-                    <Link className="" to="/historico">Ver histórico</Link>
+                    <select className={`select-status ${status[3]}`} value={status[3]} onChange={(e) => atualizarStatus(3, e.target.value)}>
+                      <option value="confirmado">Confirmado</option>
+                      <option value="pendente">Aguardando</option>
+                      <option value="cancelado">Cancelado</option>
+                      <option value="encerrado">Encerrado</option>
+                    </select>
                   </td>
                 </tr>
               </SearchBody>
