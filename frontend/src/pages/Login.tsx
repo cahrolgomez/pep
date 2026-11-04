@@ -10,7 +10,7 @@ export default function Login() {
           <Link to="/" className="brand">
             <img src="/pep_logo_fundo_verde.png" alt="PEP - Prontuário Eletrônico do Paciente" />
           </Link>
-          <p className="eyebrow" style={{ color: "#b9d9cd" }}>
+          <p className="eyebrow remove-eyebrow" style={{ color: "#b9d9cd" }}>
             Prontuário eletrônico do paciente
           </p>
           <h1>

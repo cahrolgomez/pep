@@ -490,6 +490,10 @@ legend {
 }
 
 @media(max-width:768px) {
+  .remove-eyebrow {
+    display: none;
+  }
+
   .sidebar {
     position: static;
     width: auto;
