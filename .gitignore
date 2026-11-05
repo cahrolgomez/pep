@@ -9,3 +9,4 @@ __pycache__/
 # Front-end
 frontend/node_modules/
 frontend/dist/
+frontend/testes/
