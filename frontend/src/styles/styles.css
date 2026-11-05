@@ -238,8 +238,7 @@ main {
 }
 
 .btn-consulta {
-  height: 40px;
-  margin-top: 28px;
+  height: 42px;
 }
 
 .button:hover,button:hover {
@@ -314,6 +313,7 @@ td strong {
   gap: 12px;
   flex-wrap: wrap;
   margin-bottom: 20px;
+  align-items: end;
 }
 
 .toolbar input {
@@ -369,6 +369,11 @@ input,select,textarea {
   padding: 11px 12px;
   color: var(--ink);
   margin-top: 6px;
+}
+
+input:focus,textarea:focus,select:focus {
+    outline: none;
+    border-color: var(--primary);
 }
 
 .select-status {

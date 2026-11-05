@@ -1,9 +1,49 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { AppLayout } from "../layouts/AppLayout";
-import { DemoForm, SearchBody } from "../components/Demo";
+import { apiRequest } from "../services/api";
+
+type Paciente = {
+  id_paciente: string;
+  nome: string;
+  cpf_mascarado: string;
+  telefone: string | null;
+};
+
 export default function Pacientes() {
  const [search, setSearch] = useState("");
+ const [pacientes, setPacientes] = useState<Paciente[]>([]);
+ const [erro, setErro] = useState("");
+ const [carregando, setCarregando] = useState(true);
+
+ useEffect(() => {
+   const controller = new AbortController();
+   setCarregando(true);
+   setErro("");
+
+   const timer = window.setTimeout(async () => {
+     try {
+       const params = new URLSearchParams({ q: search.trim() });
+       const dados = await apiRequest<Paciente[]>(`pacientes?${params}`, {
+         signal: controller.signal,
+       });
+       if (!controller.signal.aborted) setPacientes(dados);
+     } catch {
+       if (!controller.signal.aborted) {
+         setPacientes([]);
+         setErro("Não foi possível carregar os pacientes.");
+       }
+     } finally {
+       if (!controller.signal.aborted) setCarregando(false);
+     }
+   }, 300);
+
+   return () => {
+     window.clearTimeout(timer);
+     controller.abort();
+   };
+ }, [search]);
+
  return <AppLayout medical={false}>
         <div className="page-heading">
           <div>
@@ -40,42 +80,22 @@ export default function Pacientes() {
                   </th>
                 </tr>
               </thead>
-              <SearchBody search={search}>
-                <tr>
-                  <td>
-                    Marina Oliveira
-                  </td>
-                  <td>
-                    ***.***.***-01
-                  </td>
-                  <td>
-                    Vida Saúde
-                  </td>
-                  <td>
-                    (82) 90000-0001
-                  </td>
-                  <td>
-                    <Link className="" to="/historico">Ver histórico</Link>
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    Pedro Almeida
-                  </td>
-                  <td>
-                    ***.***.***-02
-                  </td>
-                  <td>
-                    Particular
-                  </td>
-                  <td>
-                    (82) 90000-0002
-                  </td>
-                  <td>
-                    <Link className="" to="/historico">Ver histórico</Link>
-                  </td>
-                </tr>
-              </SearchBody>
+              <tbody>
+                {carregando && <tr><td colSpan={5} role="status">Buscando pacientes...</td></tr>}
+                {erro && <tr><td colSpan={5} role="alert">{erro}</td></tr>}
+                {!carregando && !erro && pacientes.length === 0 && (
+                  <tr><td colSpan={5}>Nenhum paciente encontrado.</td></tr>
+                )}
+                {!carregando && pacientes.map((paciente) => (
+                  <tr key={paciente.id_paciente}>
+                    <td>{paciente.nome}</td>
+                    <td>{paciente.cpf_mascarado}</td>
+                    <td>—</td>
+                    <td>{paciente.telefone ?? "—"}</td>
+                    <td><Link to="/historico">Ver histórico</Link></td>
+                  </tr>
+                ))}
+              </tbody>
             </table>
           </div>
         </section>

@@ -1,13 +1,15 @@
 """Base da API do PEP. Rotas de negócio serão adicionadas por módulo."""
 
 import os
+import re
 
 import psycopg
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.responses import JSONResponse
 from pymongo import MongoClient
 from redis import Redis
-from .auth import router as auth_router
+from .auth import current_user, router as auth_router
+from .database import connect
 
 app = FastAPI(title="PEP — Prontuário Eletrônico do Paciente", version="0.1.0")
 app.include_router(auth_router)
@@ -63,3 +65,25 @@ def readiness():
         status_code=200 if ready else 503,
         content={"status": "ok" if ready else "indisponivel", "servicos": services},
     )
+
+
+@app.get("/pacientes", tags=["Pacientes"])
+def listar_pacientes(q: str = "", user=Depends(current_user)):
+    termo = q.strip()
+    cpf = re.sub(r"[.\-\s]", "", termo)
+    prefixo_cpf = f"{cpf}%" if cpf.isdecimal() else None
+    nome = termo.replace("!", "!!").replace("%", "!%").replace("_", "!_")
+
+    with connect() as connection:
+        return connection.execute(
+            """
+            SELECT id_paciente, nome,
+                   '***.***.***-' || right(cpf, 2) AS cpf_mascarado,
+                   telefone
+            FROM paciente
+            WHERE nome ILIKE %s ESCAPE '!' OR cpf LIKE %s
+            ORDER BY nome, id_paciente
+            LIMIT 50
+            """,
+            (f"%{nome}%", prefixo_cpf),
+        ).fetchall()
