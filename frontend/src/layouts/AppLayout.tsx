@@ -1,5 +1,9 @@
 import { NavLink, Link } from "react-router-dom";
 import type { ReactNode } from "react";
+import { useEffect, useState } from "react";
+import { apiRequest } from "../services/api";
+
+type Usuario = { id_usuario: number; name: string };
 const admin = [
   ["painel", "Visão geral", "/icones/dashboard-svgrepo-com.svg"],
   ["agenda", "Agenda", "/icones/agenda-handbook-note-svgrepo-com.svg"],
@@ -21,6 +25,24 @@ export function AppLayout({
   medical?: boolean;
   children: ReactNode;
 }) {
+  const [usuario, setUsuario] = useState<Usuario | null>(null);
+  const [erroUsuario, setErroUsuario] = useState(false);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    apiRequest<Usuario>("auth/me", { signal: controller.signal })
+      .then(user => {
+        if (!controller.signal.aborted) setUsuario(user);
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) setErroUsuario(true);
+      });
+    return () => controller.abort();
+  }, []);
+
+  const iniciais = usuario?.name.trim().split(/\s+/)
+    .filter(Boolean).slice(0, 2).map(parte => parte[0]).join("").toLocaleUpperCase("pt-BR");
+
   return (
     <>
       <aside className="sidebar">
@@ -52,9 +74,9 @@ export function AppLayout({
               / {medical ? "Área médica" : "Área administrativa"}
             </span>
           </span>
-          <span>
-            <span className="avatar">{medical ? "LC" : "AC"}</span>
-            {medical ? "Dra. Laura Costa" : "Ana · Administração"}
+          <span className="user">
+            <span className="avatar" aria-hidden="true">{iniciais || "…"}</span>
+            {usuario?.name ?? (erroUsuario ? "Não foi possível carregar o usuário" : "Carregando usuário…")}
           </span>
         </header>
         <main id="conteudo">{children}</main>

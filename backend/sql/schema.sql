@@ -4,8 +4,9 @@ CREATE TABLE usuario (
     id_usuario INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     name VARCHAR(150) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
-    perfil VARCHAR(50) NOT NULL,
-    status VARCHAR(20) NOT NULL
+    perfil VARCHAR(50) NOT NULL CONSTRAINT usuario_perfil_check CHECK (perfil IN ('administrador', 'atendente', 'medico')),
+    status VARCHAR(20) NOT NULL DEFAULT 'ativo' CONSTRAINT usuario_status_check CHECK (status IN ('ativo', 'inativo')),
+    senha VARCHAR(255) NOT NULL CONSTRAINT usuario_senha_check CHECK (senha LIKE 'pbkdf2_sha256$600000$%')
 );
 
 CREATE TABLE medico (
@@ -37,33 +38,10 @@ CREATE TABLE medico_especialidade (
         REFERENCES especialidades(id_especialidade)
 );
 
--- Cadastro de usuário
-
-INSERT INTO usuario (name, email, perfil, status, senha)
-VALUES (
-    'Maria Silva',
-    'mariasilva@pep.com',
-    'atendente',
-    'ativo',
-    '123456'
+CREATE UNIQUE INDEX usuario_email_lower_key ON usuario (lower(email));
+CREATE TABLE sessao (
+    token_hash VARCHAR(64) PRIMARY KEY,
+    id_usuario INTEGER NOT NULL REFERENCES usuario(id_usuario) ON DELETE CASCADE,
+    expira_em TIMESTAMPTZ NOT NULL DEFAULT (now() + interval '8 hours')
 );
-
-INSERT INTO usuario (name, email, perfil, status, senha)
-VALUES (
-    'João Silva',
-    'joaosilva@pep.com',
-    'medico',
-    'ativo',
-    '123456'
-)
-RETURNING id_usuario;
-
-INSERT INTO usuario (name, email, perfil, status, senha)
-VALUES
-    ('Laura Costa', 'lauracosta@pep.com', 'medico', 'ativo', '123456'),
-    ('Rafael Lima', 'rafaellima@pep.com', 'medico', 'ativo', '123456');
-
-INSERT INTO medico (id_usuario, crm, telefone)
-VALUES
-    (3, '234567-AL', '82988888888'),
-    (4, '345678-AL', '82977777777');
+CREATE INDEX sessao_usuario_idx ON sessao (id_usuario);

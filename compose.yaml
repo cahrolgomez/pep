@@ -22,6 +22,7 @@ services:
       REDIS_PASSWORD: ${REDIS_PASSWORD:?Configure REDIS_PASSWORD no arquivo .env}
     volumes:
       - ./backend/app:/app/app
+      - ./backend/sql:/app/sql:ro
     depends_on:
       postgres:
         condition: service_healthy

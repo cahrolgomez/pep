@@ -51,7 +51,43 @@ backend/
     main.py           Aplicação e rotas de saúde
 ```
 
-A base ainda não contém tabelas, cadastros, autenticação ou prontuários. Próxima etapa: definir a modelagem e adicionar migrações do PostgreSQL; depois implementar login, cadastros e agendamento. Separe novas rotas, regras de negócio e acesso aos bancos em módulos conforme forem implementados.
+A base contém usuários, médicos, especialidades, vínculos e sessões. Cadastro de usuários e autenticação estão implementados na API; as demais telas continuam usando dados ilustrativos.
+
+## SQL, migrações e login
+
+`backend/sql/schema.sql` define um banco novo; `migrations/` guarda alterações e `seed.sql` contém exemplos opcionais. Não reaplique o schema em um banco existente. Após iniciar os serviços:
+
+```powershell
+docker compose exec api python -m app.manage migrate
+docker compose exec api python -m app.manage create-admin
+```
+
+A migração é transacional, registra a versão e pode ser executada novamente. Preserva cadastros e converte senhas antigas para PBKDF2 com salt, mantendo a senha usada para entrar. Contas com senha vazia ficam sem senha utilizável. Perfis aceitos: `administrador`, `atendente`, `medico`; status: `ativo`, `inativo`. Dados incompatíveis ou e-mails duplicados sem distinguir maiúsculas interrompem e revertem a migração para correção manual.
+
+O comando `create-admin` solicita nome, e-mail e senha sem exibir a senha. Use-o para criar seu primeiro administrador.
+
+Exemplos opcionais (não alteram contas existentes):
+
+```powershell
+docker compose exec api python -m app.manage seed
+```
+
+Novos exemplos recebem a senha `PepDemo123!`. João, Laura e Rafael são vinculados por e-mail aos registros de médico, sem IDs fixos. O seed não é aplicado automaticamente.
+
+Endpoints disponíveis em http://localhost:8000/docs:
+
+- `POST /auth/login`: recebe `email` e `senha`; retorna `access_token` e usuário sem senha.
+- `GET /auth/me`: consulta a conta autenticada.
+- `POST /usuarios`: somente administradores; recebe `name`, `email`, `senha` (8 a 128 caracteres), `perfil` e, para médicos, `crm` e `telefone` opcional. Salva usuário e médico na mesma transação, com status ativo.
+- `POST /auth/logout`: revoga a sessão atual.
+
+Nas rotas autenticadas envie o cabeçalho `Authorization: Bearer TOKEN`. Sessões duram oito horas; apenas o hash do token é armazenado no banco. O frontend usa o login real e o perfil retornado pela API. As demais telas ainda são demonstrações; futuras rotas de negócio precisam validar sessão e permissões na API. A configuração permanece voltada ao desenvolvimento local.
+
+Verificação de integração (remove contas temporárias ao terminar):
+
+```powershell
+docker compose exec api python -m app.check_auth
+```
 
 
 ## Comandos do bd

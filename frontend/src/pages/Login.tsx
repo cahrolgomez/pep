@@ -1,8 +1,6 @@
-import { useState } from "react";
 import { Link } from "react-router-dom";
 import { DemoForm } from "../components/Demo";
 export default function Login() {
-  const [perfil, setPerfil] = useState("");
   return (
     <>
       <main className="login">
@@ -47,13 +45,7 @@ export default function Login() {
                 required
               />
             </label>
-            <input type="hidden" name="perfil" value={perfil} />
-            <label id="perfil-label">Escolha um perfil.</label>
-            <div className="button-group" role="group" aria-labelledby="perfil-label">
-              <button type="button" aria-pressed={perfil === "painel"} onClick={() => setPerfil("painel")}>Administrativo</button>
-              <button type="button" aria-pressed={perfil === "painel-medico"} onClick={() => setPerfil("painel-medico")}>Médico</button>
-            </div>
-            <button type="submit" disabled={!perfil}>Entrar</button>
+            <button type="submit">Entrar</button>
           </DemoForm>
         </section>
       </main>

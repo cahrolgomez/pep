@@ -498,13 +498,13 @@ legend {
 }
 
 .login-form label {
-  margin-top: 18px;
+  margin-top: 10px;
 }
 
 .login-form button {
   width: 100%;
   margin-bottom: 16px;
-  margin-top: 5px;
+  margin-top: 20px;
 }
 
 .button-group {
