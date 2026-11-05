@@ -1,7 +1,7 @@
 -- Tabelas
 
 CREATE TABLE usuario (
-    id_usuario INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id_usuario uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(150) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
     perfil VARCHAR(50) NOT NULL CONSTRAINT usuario_perfil_check CHECK (perfil IN ('administrador', 'atendente', 'medico')),
@@ -10,8 +10,8 @@ CREATE TABLE usuario (
 );
 
 CREATE TABLE medico (
-    id_medico INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    id_usuario INTEGER NOT NULL UNIQUE,
+    id_medico uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_usuario uuid NOT NULL UNIQUE,
     crm VARCHAR(30) NOT NULL UNIQUE,
     telefone VARCHAR(20),
 
@@ -20,13 +20,22 @@ CREATE TABLE medico (
         REFERENCES usuario(id_usuario)
 );
 
+CREATE TABLE paciente (
+    id_paciente uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    nome text NOT NULL,
+    cpf varchar(11) NOT NULL UNIQUE,
+    data_nascimento date,
+    telefone text,
+    email text
+);
+
 CREATE TABLE especialidades (
     id_especialidade INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     nome_especialidade VARCHAR(100) NOT NULL UNIQUE
 );
 
 CREATE TABLE medico_especialidade (
-    id_medico INTEGER NOT NULL,
+    id_medico uuid NOT NULL,
     id_especialidade INTEGER NOT NULL,
 
     PRIMARY KEY (id_medico, id_especialidade),
@@ -41,7 +50,7 @@ CREATE TABLE medico_especialidade (
 CREATE UNIQUE INDEX usuario_email_lower_key ON usuario (lower(email));
 CREATE TABLE sessao (
     token_hash VARCHAR(64) PRIMARY KEY,
-    id_usuario INTEGER NOT NULL REFERENCES usuario(id_usuario) ON DELETE CASCADE,
+    id_usuario uuid NOT NULL REFERENCES usuario(id_usuario) ON DELETE CASCADE,
     expira_em TIMESTAMPTZ NOT NULL DEFAULT (now() + interval '8 hours')
 );
 CREATE INDEX sessao_usuario_idx ON sessao (id_usuario);

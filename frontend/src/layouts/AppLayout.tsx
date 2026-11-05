@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { apiRequest } from "../services/api";
 
-type Usuario = { id_usuario: number; name: string };
+type Usuario = { id_usuario: string; name: string };
 const admin = [
   ["painel", "Visão geral", "/icones/dashboard-svgrepo-com.svg"],
   ["agenda", "Agenda", "/icones/agenda-handbook-note-svgrepo-com.svg"],
