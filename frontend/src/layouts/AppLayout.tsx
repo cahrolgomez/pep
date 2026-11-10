@@ -1,4 +1,4 @@
-import { NavLink, Link } from "react-router-dom";
+import { NavLink, Link, useNavigate } from "react-router-dom";
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { apiRequest } from "../services/api";
@@ -27,6 +27,23 @@ export function AppLayout({
 }) {
   const [usuario, setUsuario] = useState<Usuario | null>(null);
   const [erroUsuario, setErroUsuario] = useState(false);
+  const [saindo, setSaindo] = useState(false);
+  const navigate = useNavigate();
+
+  async function sair() {
+    setSaindo(true);
+    try {
+      await apiRequest<void>("auth/logout", {
+        method: "POST",
+        signal: AbortSignal.timeout(5000),
+      });
+    } catch {
+      // A saída local também deve funcionar quando a API está indisponível.
+    } finally {
+      sessionStorage.removeItem("pep_token");
+      navigate("/", { replace: true });
+    }
+  }
 
   useEffect(() => {
     const controller = new AbortController();
@@ -58,11 +75,9 @@ export function AppLayout({
           ))}
         </nav>
         <div className="sidebar-footer">
-          Ambiente de demonstração
-          <br />
-          Dados inteiramente fictícios
-          <br />
-          <Link to="/">Sair da demonstração →</Link>
+          <button type="button" onClick={sair} disabled={saindo}>
+            {saindo ? "Saindo…" : "Sair"} <img src="/icones/back-arrow-to-first-track-svgrepo-com.svg" alt="" />
+          </button>
         </div>
       </aside>
       <div className="workspace">

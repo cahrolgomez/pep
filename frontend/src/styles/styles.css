@@ -137,7 +137,26 @@ nav a.active {
 .sidebar-footer {
   margin-top: auto;
   padding-top: 24px;
-  font-size: 12px;
+  font-size: 16px;
+}
+
+.sidebar-footer img {
+  width: 12px;
+  height: 12px;
+  margin-bottom: -2px;
+  margin-left: 4px;
+}
+
+.sidebar-footer button {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  cursor: pointer;
+}
+
+.sidebar-footer button:hover {
+  background: transparent;
 }
 
 .workspace {
@@ -562,7 +581,7 @@ legend {
     white-space: nowrap;
   }
 
-  .brand-caption,.sidebar-footer {
+  .brand-caption {
     display: none;
   }
 

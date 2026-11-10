@@ -5,5 +5,6 @@ export async function apiRequest<T>(path: string, options?: RequestInit): Promis
  if (token) headers.set('Authorization', `Bearer ${token}`);
  const response = await fetch(`/api/${path.replace(/^\//, '')}`, {...options, headers});
  if (!response.ok) throw new Error(`Não foi possível concluir a solicitação (${response.status}).`);
+ if (response.status === 204) return undefined as T;
  return response.json() as Promise<T>;
 }

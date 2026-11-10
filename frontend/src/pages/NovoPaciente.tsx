@@ -41,11 +41,7 @@ export default function NovoPaciente() {
               </label>
               <label>
                 Convênio
-                <select name="convenio" required>
-                  <option>Particular</option>
-                  <option>Vida Saúde</option>
-                  <option>Bem Cuidar</option>
-                </select>
+                <input name="convenio" type="text" required />
               </label>
               <label>
                 Número da carteirinha

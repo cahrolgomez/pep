@@ -75,9 +75,6 @@ export default function Pacientes() {
                   <th scope="col">
                     Contato
                   </th>
-                  <th scope="col">
-                    Ação
-                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -92,7 +89,6 @@ export default function Pacientes() {
                     <td>{paciente.cpf_mascarado}</td>
                     <td>—</td>
                     <td>{paciente.telefone ?? "—"}</td>
-                    <td><Link to="/historico">Ver histórico</Link></td>
                   </tr>
                 ))}
               </tbody>
