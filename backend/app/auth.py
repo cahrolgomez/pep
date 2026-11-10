@@ -29,6 +29,7 @@ class Cadastro(Login):
     name: str = Field(min_length=1, max_length=150)
     senha: str = Field(min_length=8, max_length=128)
     perfil: Literal['administrador', 'atendente', 'medico']
+    cpf: str | None = Field(default=None, pattern=r"^[0-9]{11}$")
     crm: str | None = Field(default=None, min_length=1, max_length=30)
     telefone: str | None = Field(default=None, max_length=20)
 
@@ -73,22 +74,40 @@ def logout(authorization: str = Header(default=''), user=Depends(current_user)):
     return Response(status_code=204)
 
 
+@router.get('/medicos')
+def listar_medicos(user=Depends(current_user)):
+    with connect() as conn:
+        return conn.execute("""
+            SELECT m.id_medico, u.name AS nome, m.crm, u.status,
+                   string_agg(e.nome_especialidade, ', ' ORDER BY e.nome_especialidade)
+                       AS especialidades
+            FROM medico m
+            JOIN usuario u USING (id_usuario)
+            LEFT JOIN medico_especialidade me USING (id_medico)
+            LEFT JOIN especialidades e USING (id_especialidade)
+            GROUP BY m.id_medico, u.name, u.status
+            ORDER BY u.name, m.crm
+        """).fetchall()
+
+
 @router.post('/usuarios', status_code=201)
 def register(data: Cadastro, actor=Depends(current_user)):
     if actor['perfil'] != 'administrador':
         raise HTTPException(403, 'Somente administradores podem cadastrar usuários')
     if not data.name.strip() or (data.perfil == 'medico' and not (data.crm or '').strip()):
         raise HTTPException(422, 'Informe o nome e, para médicos, o CRM')
-    if data.perfil != 'medico' and (data.crm or data.telefone):
-        raise HTTPException(422, 'CRM e telefone são exclusivos do cadastro de médico')
+    if data.perfil == 'medico' and not data.cpf:
+        raise HTTPException(422, 'Informe o CPF do médico')
+    if data.perfil != 'medico' and (data.crm or data.telefone or data.cpf):
+        raise HTTPException(422, 'CPF, CRM e telefone são exclusivos do cadastro de médico')
     try:
         with connect() as conn:
             user = conn.execute('''INSERT INTO usuario (name,email,perfil,status,senha)
                 VALUES (%s,%s,%s,'ativo',%s) RETURNING id_usuario,name,email,perfil,status''',
                 (data.name.strip(), data.email, data.perfil, hash_password(data.senha))).fetchone()
             if data.perfil == 'medico':
-                conn.execute('INSERT INTO medico (id_usuario,crm,telefone) VALUES (%s,%s,%s)',
-                             (user['id_usuario'], data.crm.strip(), data.telefone))
+                conn.execute('INSERT INTO medico (id_usuario,crm,telefone,cpf) VALUES (%s,%s,%s,%s)',
+                             (user['id_usuario'], data.crm.strip(), data.telefone, data.cpf))
             return user
     except UniqueViolation:
-        raise HTTPException(409, 'E-mail ou CRM já cadastrado')
+        raise HTTPException(409, 'E-mail, CRM ou CPF já cadastrado')

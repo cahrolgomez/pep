@@ -18,7 +18,8 @@ def migrate():
         conn.execute('SELECT pg_advisory_xact_lock(417203)')
         conn.execute('CREATE TABLE IF NOT EXISTS schema_migrations (version TEXT PRIMARY KEY, aplicada_em TIMESTAMPTZ DEFAULT now())')
         if conn.execute("SELECT 1 FROM schema_migrations WHERE version='001_auth'").fetchone():
-            print('Banco já atualizado.')
+            conn.execute((SQL / 'migrations/003_medico_cpf.sql').read_text(encoding='utf-8'))
+            print('Banco atualizado.')
             return
         exists = conn.execute("SELECT to_regclass('public.usuario') AS tabela").fetchone()['tabela']
         if not exists:
@@ -34,6 +35,7 @@ def migrate():
                                  (hash_password(password), user['id_usuario']))
             conn.execute('ALTER TABLE usuario ALTER COLUMN senha SET NOT NULL')
             conn.execute((SQL / 'migrations/001_auth.sql').read_text(encoding='utf-8-sig'))
+        conn.execute((SQL / 'migrations/003_medico_cpf.sql').read_text(encoding='utf-8'))
         conn.execute("INSERT INTO schema_migrations(version) VALUES ('001_auth')")
     print('Migração concluída; cadastros preservados. Senhas vazias foram inutilizadas.')
 

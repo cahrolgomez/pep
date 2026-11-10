@@ -49,12 +49,20 @@ def run():
         token = result['access_token']
         assert 'senha' not in result['usuario']
         assert request('/auth/me', token=token)['email'] == email
-        cadastro = {'name':'Teste Médico','email':doctor_email,'senha':password,'perfil':'medico','crm':secrets.token_hex(10)}
+        cadastro = {'name':'Teste Médico','email':doctor_email,'senha':password,'perfil':'medico','crm':secrets.token_hex(10),'cpf':str(secrets.randbelow(10**11)).zfill(11),'telefone':'82999999999'}
         request('/usuarios',cadastro,expected=401)
         user = request('/usuarios',cadastro,token,201)
         request('/usuarios',cadastro,token,409)
         with connect() as conn:
-            assert conn.execute('SELECT 1 FROM medico WHERE id_usuario=%s',(user['id_usuario'],)).fetchone()
+            medico = conn.execute(
+                '''SELECT m.id_medico, u.name, m.crm, m.telefone, m.cpf
+                   FROM medico m JOIN usuario u USING (id_usuario)
+                   WHERE m.id_usuario = %s''',
+                (user['id_usuario'],),
+            ).fetchone()
+            assert medico and medico['id_medico']
+            for campo in ('name', 'crm', 'telefone', 'cpf'):
+                assert medico[campo] == cadastro[campo], campo
         doctor = request('/auth/login',{'email':doctor_email,'senha':password})['access_token']
         request('/usuarios',cadastro,doctor,403)
         request('/auth/logout',{},token,204)

@@ -157,6 +157,7 @@ nav a.active {
 
 .sidebar-footer button:hover {
   background: transparent;
+  color: var(--primary);
 }
 
 .workspace {

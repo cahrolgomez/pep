@@ -12,6 +12,7 @@ CREATE TABLE usuario (
 CREATE TABLE medico (
     id_medico uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     id_usuario uuid NOT NULL UNIQUE,
+    cpf VARCHAR(11) UNIQUE CHECK (cpf ~ '^[0-9]{11}$'),
     crm VARCHAR(30) NOT NULL UNIQUE,
     telefone VARCHAR(20),
 
