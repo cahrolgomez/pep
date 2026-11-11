@@ -37,6 +37,7 @@ export default function Historico() {
           <h3>{situacoes[item.status_consulta ?? item.status] ?? item.status_consulta ?? item.status}</h3>
           <p className="muted">{item.medico}{item.especialidades && " · " + item.especialidades}</p>
           {item.observacao_administrativa && <p>{item.observacao_administrativa}</p>}
+          {item.procedimentos && <p>Procedimentos · {item.procedimentos}</p>}
         </article>)}
       </div>
     </section>}

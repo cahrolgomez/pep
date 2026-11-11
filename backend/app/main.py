@@ -11,10 +11,12 @@ from redis import Redis
 from .auth import current_user, router as auth_router
 from .database import connect
 from .operacoes import router as operacoes_router
+from .manutencao import router as manutencao_router
 
 app = FastAPI(title="PEP — Prontuário Eletrônico do Paciente", version="0.1.0")
 app.include_router(auth_router)
 app.include_router(operacoes_router)
+app.include_router(manutencao_router)
 
 
 @app.get("/", tags=["Sistema"])

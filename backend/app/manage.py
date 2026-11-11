@@ -34,7 +34,7 @@ def migrate():
                 conn.execute((SQL / 'migrations/001_auth.sql').read_text(encoding='utf-8-sig'))
             conn.execute("INSERT INTO schema_migrations(version) VALUES ('001_auth')")
         conn.execute((SQL / 'migrations/003_medico_cpf.sql').read_text(encoding='utf-8'))
-        for version in ('004_tabelas_operacionais', '005_campos_administrativos'):
+        for version in ('004_tabelas_operacionais', '005_campos_administrativos', '006_operacoes_uml'):
             if not conn.execute('SELECT 1 FROM schema_migrations WHERE version=%s', (version,)).fetchone():
                 conn.execute((SQL / f'migrations/{version}.sql').read_text(encoding='utf-8'))
                 conn.execute('INSERT INTO schema_migrations(version) VALUES (%s)', (version,))

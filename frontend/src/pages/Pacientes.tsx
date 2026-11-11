@@ -91,7 +91,8 @@ export default function Pacientes() {
                     <td>{paciente.cpf_mascarado}</td>
                     <td>{paciente.convenios ?? "Particular"}</td>
                     <td>{paciente.telefone ?? "—"}</td>
-                    <td><Link to={"/historico?paciente=" + paciente.id_paciente}>Ver histórico</Link></td>
+                    <td className="actions"><Link to={"/pacientes/" + paciente.id_paciente + "/editar"}>Editar</Link>
+                      <Link to={"/historico?paciente=" + paciente.id_paciente}>Ver histórico</Link></td>
                   </tr>
                 ))}
               </tbody>

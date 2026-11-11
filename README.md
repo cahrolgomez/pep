@@ -53,6 +53,8 @@ backend/
 
 A API usa PostgreSQL para autenticação, pacientes, médicos, especialidades, convênios, planos, agenda, histórico de consultas e faturamento. O prontuário clínico permanece na etapa demonstrativa para integração posterior com MongoDB.
 
+Pacientes são cadastrados pela equipe e não possuem login. Atendentes e administradores fazem os agendamentos. Médicos gerenciam os próprios horários e registram procedimentos nas próprias consultas. Para faturar pelo convênio, cadastre os procedimentos cobertos em **Convênios → Editar cobertura**. O valor da cobrança é calculado a partir dos procedimentos da consulta, com o preço registrado no momento da inclusão.
+
 ## SQL, migrações e login
 
 `backend/sql/schema.sql` define um banco novo; `migrations/` guarda alterações e `seed.sql` contém exemplos opcionais. Não reaplique o schema em um banco existente. Após iniciar os serviços:

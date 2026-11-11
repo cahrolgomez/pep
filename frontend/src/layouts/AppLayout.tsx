@@ -11,6 +11,7 @@ const admin = [
   ["medicos", "Médicos", "/icones/doctor-svgrepo-com.svg"],
   ["especialidades", "Especialidades", "/icones/medical-medicine-health-3-svgrepo-com.svg"],
   ["convenios", "Convênios", "/icones/health-insurance-finance-svgrepo-com.svg"],
+  ["procedimentos", "Procedimentos", "/icones/service-svgrepo-com.svg"],
   ["faturamento", "Faturamento", "/icones/invoice-bill-svgrepo-com.svg"],
 ];
 const doctor = [
@@ -73,6 +74,7 @@ export function AppLayout({
               {label}
             </NavLink>
           ))}
+          <NavLink to="/conta" className={({ isActive }) => (isActive ? "active" : "")}>Minha conta</NavLink>
         </nav>
         <div className="sidebar-footer">
           <button type="button" onClick={sair} disabled={saindo}>

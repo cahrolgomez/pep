@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { AppLayout } from "../layouts/AppLayout";
-import { AcaoAgendamento, Cadastro, EstadoDados, Tabela } from "../components/Operacoes";
+import { AcaoAgendamento, EstadoDados, Tabela } from "../components/Operacoes";
+import { Horarios } from "../components/Manutencao";
 import { useDados } from "../hooks/useDados";
-import { diaBr, salvar, situacoes, type Agendamento, type Medico } from "../services/operacoes";
+import { diaBr, situacoes, type Agendamento, type Medico } from "../services/operacoes";
 
 export default function Agenda() {
   const [params, setParams] = useSearchParams();
@@ -39,17 +40,6 @@ export default function Agenda() {
         </tr>)}
       </Tabela>}
     </section>
-    <section className="card">
-      <h2>Liberar horário</h2>
-      <Cadastro label="Liberar horário" disabled={medicos.loading || !!medicos.error}
-        enviar={fields => salvar("disponibilidades", Object.fromEntries(fields))}>
-        <label>Profissional<select name="id_medico" required>
-          <option value="">Selecione</option>
-          {medicos.data?.filter(item => item.status === "ativo").map(item => <option key={item.id_medico} value={item.id_medico}>{item.nome}</option>)}
-        </select></label>
-        <label>Data<input name="data" type="date" required /></label>
-        <label>Horário<input name="horario" type="time" required /></label>
-      </Cadastro>
-    </section>
+    <Horarios />
   </AppLayout>;
 }

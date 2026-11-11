@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { AppLayout } from "../layouts/AppLayout";
 import { AcaoAgendamento, EstadoDados, Tabela } from "../components/Operacoes";
+import { AdicionarProcedimento, Horarios } from "../components/Manutencao";
 import { useDados } from "../hooks/useDados";
 import { diaBr, situacoes, type Agendamento, type Painel } from "../services/operacoes";
 
@@ -28,16 +29,19 @@ export default function PainelMedico() {
       </div>
       <section className="card">
         <h2>Agenda de {diaBr(data || painel.data?.hoje || "")}</h2>
-        {dia.length ? <Tabela colunas={["Horário", "Paciente", "Situação", "Ações"]}>
+        {dia.length ? <Tabela colunas={["Horário", "Paciente", "Situação", "Procedimentos", "Ações"]}>
           {dia.map(item => <tr key={item.id_agendamento}>
             <td>{item.horario.slice(0, 5)}</td><td>{item.paciente}</td><td>{situacoes[item.status] ?? item.status}</td>
+            <td>{item.procedimentos ?? "—"}</td>
             <td>
               <Link to={"/historico?paciente=" + item.id_paciente}>Ver histórico</Link>
               <AcaoAgendamento id={item.id_agendamento} status={item.status} atualizar={() => setVersao(v => v + 1)} />
+              {item.id_consulta && item.aceita_procedimento && <AdicionarProcedimento id={item.id_consulta} atualizar={() => setVersao(v => v + 1)} />}
             </td>
           </tr>)}
         </Tabela> : <p>Nenhum atendimento nesta data.</p>}
       </section>
     </>}
+    <Horarios medical />
   </AppLayout>;
 }

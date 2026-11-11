@@ -52,7 +52,7 @@ export default function Medicos() {
      email: fields.get("email"),
      senha: fields.get("senha"),
      telefone: fields.get("telefone"),
-     id_especialidade: fields.get("especialidade") ? Number(fields.get("especialidade")) : null,
+     id_especialidade: fields.get("especialidade") || null,
     }),
    });
    form.reset();
@@ -147,7 +147,7 @@ export default function Medicos() {
               </label>
               <label>Especialidade<select name="especialidade">
                 <option value="">Selecione, se aplicável</option>
-                {especialidades.data?.map(item => <option key={item.id_especialidade} value={item.id_especialidade}>{item.nome_especialidade}</option>)}
+                {especialidades.data?.filter(item => item.status === "ativo").map(item => <option key={item.id_especialidade} value={item.id_especialidade}>{item.nome_especialidade}</option>)}
               </select></label>
             </div>
             {especialidades.error && <p role="alert">{especialidades.error}</p>}

@@ -108,6 +108,16 @@ INSERT INTO procedimento (id_procedimento, nome, descricao, valor, status) VALUE
 ('2d45982b-75e1-43c8-b709-000000000033', 'Eletrocardiograma de repouso', 'Registro da atividade elétrica cardíaca em repouso.', 95.00, 'ativo')
 ON CONFLICT DO NOTHING;
 
+INSERT INTO plano_procedimento (id_plano, id_procedimento)
+SELECT p.id_plano, pr.id_procedimento
+FROM (VALUES
+    ('2d45982b-75e1-43c8-b709-000000000001'::uuid, '2d45982b-75e1-43c8-b709-000000000031'::uuid),
+    ('2d45982b-75e1-43c8-b709-000000000002'::uuid, '2d45982b-75e1-43c8-b709-000000000032'::uuid),
+    ('2d45982b-75e1-43c8-b709-000000000002'::uuid, '2d45982b-75e1-43c8-b709-000000000033'::uuid)
+) AS exemplo(id_plano, id_procedimento)
+JOIN plano p USING (id_plano) JOIN procedimento pr USING (id_procedimento)
+ON CONFLICT DO NOTHING;
+
 INSERT INTO consulta_procedimento (id_consulta_procedimento, id_consulta, id_procedimento, data, horario, valor, quantidade)
 SELECT exemplo.id::uuid, c.id_consulta, p.id_procedimento, c.data, c.horario + exemplo.espera::interval, p.valor, 1
 FROM (VALUES

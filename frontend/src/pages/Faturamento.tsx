@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { AppLayout } from "../layouts/AppLayout";
 import { Cadastro, EstadoDados, Tabela } from "../components/Operacoes";
+import { AcaoRegistro, AdicionarProcedimento, moeda } from "../components/Manutencao";
 import { useDados } from "../hooks/useDados";
 import { diaBr, salvar, type Convenio } from "../services/operacoes";
 
@@ -15,36 +16,22 @@ type Atendimento = {
   valor_procedimentos: number | null;
   procedimentos: string | null;
   status: string | null;
+  motivo_cancelamento: string | null;
 };
-
-const moeda = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
 export default function Faturamento() {
   const [params, setParams] = useSearchParams();
   const [versao, setVersao] = useState(0);
   const [consulta, setConsulta] = useState("");
-  const [salvando, setSalvando] = useState(false);
-  const [feedback, setFeedback] = useState("");
   const convenios = useDados<Convenio[]>("convenios");
   const faturamento = useDados<Atendimento[]>("faturamento?" + params, versao);
   const lista = faturamento.data ?? [];
-  const selecionado = lista.find(item => item.id_consulta === consulta && !item.id_faturamento);
-  const pendentes = lista.filter(item => item.status !== "pago");
+  const faturaveis = lista.filter(item => !item.id_faturamento && item.valor_procedimentos != null);
+  const selecionado = faturaveis.find(item => item.id_consulta === consulta);
+  const pendentes = lista.filter(item => !item.id_faturamento || item.status === "pendente");
+  const vigentes = lista.filter(item => item.status !== "cancelado");
   const total = (itens: Atendimento[]) => moeda.format(itens.reduce((centavos, item) => centavos + Math.round(Number(item.valor_total ?? 0) * 100), 0) / 100);
   const atualizar = () => setVersao(v => v + 1);
-
-  async function registrarPagamento(id: string) {
-    setSalvando(true);
-    setFeedback("");
-    try {
-      await salvar("faturamento/" + id + "/pagamento", {}, "PATCH");
-      atualizar();
-    } catch (error) {
-      setFeedback(error instanceof Error ? error.message : "Não foi possível registrar o pagamento.");
-    } finally {
-      setSalvando(false);
-    }
-  }
 
   return <AppLayout>
     <div className="page-heading"><h1>Faturamento</h1></div>
@@ -77,9 +64,9 @@ export default function Faturamento() {
     <EstadoDados loading={faturamento.loading} error={faturamento.error} />
     {faturamento.data && <>
       <div className="stats">
-        <article className="card stat"><span className="muted">Total faturado</span><strong>{total(lista)}</strong></article>
-        <article className="card stat"><span className="muted">Convênios</span><strong>{total(lista.filter(item => item.convenio))}</strong></article>
-        <article className="card stat"><span className="muted">Particular</span><strong>{total(lista.filter(item => !item.convenio))}</strong></article>
+        <article className="card stat"><span className="muted">Total faturado</span><strong>{total(vigentes)}</strong></article>
+        <article className="card stat"><span className="muted">Convênios</span><strong>{total(vigentes.filter(item => item.convenio))}</strong></article>
+        <article className="card stat"><span className="muted">Particular</span><strong>{total(vigentes.filter(item => !item.convenio))}</strong></article>
         <article className="card stat"><span className="muted">Atendimentos pendentes</span><strong>{pendentes.length}</strong></article>
       </div>
       <section className="card">
@@ -88,24 +75,33 @@ export default function Faturamento() {
           {lista.map(item => <tr key={item.id_consulta}>
             <td>{diaBr(item.data)}</td><td>{item.paciente}</td><td>{item.convenio ?? "Particular"}</td><td>{item.procedimentos ?? "—"}</td>
             <td>{item.valor_total == null ? "—" : moeda.format(Number(item.valor_total))}</td>
-            <td>{item.status === "pago" ? "Pago" : item.status === "pendente" ? "Aguardando pagamento" : item.status ?? "A faturar"}</td>
-            <td>{item.id_faturamento && item.status === "pendente" &&
-              <button type="button" disabled={salvando} onClick={() => registrarPagamento(item.id_faturamento!)}>Registrar pagamento</button>}</td>
+            <td>{item.status === "pago" ? "Pago" : item.status === "pendente" ? "Aguardando pagamento" : item.status === "cancelado" ? "Cancelado" : item.status ?? "A faturar"}
+              {item.motivo_cancelamento && <p className="muted">{item.motivo_cancelamento}</p>}</td>
+            <td>{!item.id_faturamento && <AdicionarProcedimento id={item.id_consulta} atualizar={atualizar} />}
+              {item.id_faturamento && item.status === "pendente" && <>
+                <AcaoRegistro label="Registrar pagamento" atualizar={atualizar}
+                  executar={() => salvar("faturamento/" + item.id_faturamento + "/pagamento", {}, "PATCH")} />
+                <details><summary>Cancelar cobrança</summary>
+                  <Cadastro label="Confirmar cancelamento" concluido={atualizar}
+                    enviar={fields => salvar("faturamento/" + item.id_faturamento + "/cancelamento", { motivo: fields.get("motivo") }, "PATCH")}>
+                    <label>Motivo<input name="motivo" required maxLength={500} /></label>
+                  </Cadastro>
+                </details>
+              </>}</td>
           </tr>)}
         </Tabela> : <p>Nenhum atendimento encontrado.</p>}
-        {feedback && <p role="alert">{feedback}</p>}
       </section>
       <section className="card">
         <h2>Registrar faturamento</h2>
         <Cadastro label="Registrar faturamento" disabled={!selecionado} concluido={() => { setConsulta(""); atualizar(); }}
-          enviar={fields => salvar("faturamento", { id_consulta: consulta, valor_total: fields.get("valor"), forma_pagamento: fields.get("forma") })}>
+          enviar={fields => salvar("faturamento", { id_consulta: consulta, forma_pagamento: fields.get("forma") })}>
           <label>Atendimento concluído<select required value={consulta} onChange={event => setConsulta(event.target.value)}>
             <option value="">Selecione</option>
-            {lista.filter(item => !item.id_faturamento).map(item => <option key={item.id_consulta} value={item.id_consulta}>
+            {faturaveis.map(item => <option key={item.id_consulta} value={item.id_consulta}>
               {item.paciente} · {diaBr(item.data)} · {item.convenio ?? "Particular"}
             </option>)}
           </select></label>
-          <label>Valor (R$)<input key={consulta} name="valor" type="number" step="0.01" min="0" max="9999999999.99" defaultValue={selecionado?.valor_procedimentos ?? ""} required /></label>
+          <label>Total dos procedimentos<input value={selecionado ? moeda.format(Number(selecionado.valor_procedimentos)) : ""} readOnly /></label>
           <label>Forma de pagamento<select key={consulta} name="forma" required>
             {selecionado?.convenio ? <option value="convenio">Convênio</option> : <>
               <option value="pix">Pix</option><option value="cartao">Cartão</option><option value="dinheiro">Dinheiro</option>

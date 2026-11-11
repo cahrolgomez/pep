@@ -22,13 +22,16 @@ class Dados(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True, str_min_length=1)
 
 
-class Paciente(Dados):
+class PacienteCadastro(Dados):
     nome: str = Field(max_length=150)
     cpf: str = Field(pattern=r"^[0-9]{11}$")
     data_nascimento: date | None = None
     telefone: str | None = Field(default=None, max_length=20)
     email: str | None = Field(default=None, max_length=255, pattern=r"^[^\s@]+@[^\s@]+$")
     endereco: str | None = Field(default=None, max_length=255)
+
+
+class Paciente(PacienteCadastro):
     id_plano: UUID | None = None
     numero_carteirinha: str | None = Field(default=None, max_length=80)
     validade: date | None = None
@@ -59,7 +62,7 @@ class Plano(Dados):
 
 
 class Horario(Dados):
-    id_medico: UUID
+    id_medico: UUID | None = None
     data: date
     horario: time
 
@@ -78,8 +81,11 @@ class Situacao(Dados):
 
 class Fatura(Dados):
     id_consulta: UUID
-    valor_total: Decimal = Field(ge=0, max_digits=12, decimal_places=2)
     forma_pagamento: Literal["pix", "cartao", "dinheiro", "convenio"]
+
+
+class CancelamentoFatura(Dados):
+    motivo: str = Field(max_length=500)
 
 
 @router.post("/pacientes", status_code=201, dependencies=[Depends(equipe)])
@@ -108,7 +114,7 @@ def cadastrar_paciente(dados: Paciente):
 def especialidades():
     with connect() as conn:
         return conn.execute("""
-            SELECT e.id_especialidade, e.nome_especialidade, e.descricao, count(me.id_medico) AS profissionais
+            SELECT e.id_especialidade, e.nome_especialidade, e.descricao, e.status, count(me.id_medico) AS profissionais
             FROM especialidades e LEFT JOIN medico_especialidade me USING (id_especialidade)
             GROUP BY e.id_especialidade ORDER BY e.nome_especialidade
         """).fetchall()
@@ -143,13 +149,15 @@ def cadastrar_convenio(dados: Convenio):
 
 
 @router.get("/planos", dependencies=[Depends(equipe)])
-def planos():
+def planos(incluir_inativos: bool = False):
     with connect() as conn:
         return conn.execute("""
-            SELECT p.id_plano, p.nome, p.cobertura, c.nome AS convenio
+            SELECT p.id_plano, p.nome, p.cobertura, p.status, c.nome AS convenio,
+                   coalesce((SELECT array_agg(pp.id_procedimento) FROM plano_procedimento pp
+                             WHERE pp.id_plano = p.id_plano), ARRAY[]::uuid[]) AS procedimentos
             FROM plano p JOIN convenio c USING (id_convenio)
-            WHERE p.status = 'ativo' AND c.status = 'ativo' ORDER BY c.nome, p.nome
-        """).fetchall()
+            WHERE %s OR (p.status = 'ativo' AND c.status = 'ativo') ORDER BY c.nome, p.nome
+        """, (incluir_inativos,)).fetchall()
 
 
 @router.post("/planos", status_code=201, dependencies=[Depends(equipe)])
@@ -194,18 +202,23 @@ def disponibilidades(id_medico: UUID, data: date):
         """, (id_medico, data)).fetchall()
 
 
-@router.post("/disponibilidades", status_code=201, dependencies=[Depends(equipe)])
-def cadastrar_horario(dados: Horario):
+@router.post("/disponibilidades", status_code=201)
+def cadastrar_horario(dados: Horario, user=Depends(current_user)):
+    medico = user['perfil'] == 'medico'
+    if not medico and dados.id_medico is None:
+        raise HTTPException(422, "Selecione o profissional")
     with connect() as conn:
         horario = conn.execute("""
             INSERT INTO disponibilidade_agenda (id_medico, data, horario, status)
             SELECT m.id_medico, %s, %s, 'disponivel' FROM medico m JOIN usuario u USING (id_usuario)
-            WHERE m.id_medico = %s AND u.status = 'ativo'
+            WHERE (%s::uuid IS NULL OR m.id_medico = %s)
+              AND (%s::uuid IS NULL OR m.id_usuario = %s) AND u.status = 'ativo'
               AND %s::date + %s::time >= now() AT TIME ZONE 'America/Fortaleza'
               AND NOT EXISTS (SELECT 1 FROM agendamento a WHERE a.id_medico = m.id_medico
                   AND a.data = %s AND a.horario = %s AND a.status <> 'cancelado')
             ON CONFLICT DO NOTHING RETURNING id_disponibilidade
-        """, (dados.data, dados.horario, dados.id_medico, dados.data, dados.horario,
+        """, (dados.data, dados.horario, dados.id_medico, dados.id_medico,
+              user['id_usuario'] if medico else None, user['id_usuario'] if medico else None, dados.data, dados.horario,
               dados.data, dados.horario)).fetchone()
         if not horario:
             raise HTTPException(409, "Informe um horário futuro e livre para um profissional ativo")
@@ -251,14 +264,23 @@ def listar_agenda(conn, user, data=None, id_medico=None, id_paciente=None, proxi
                p.nome AS paciente, u.name AS medico, especialidades.nomes AS especialidades,
                cs.id_consulta, cs.status AS status_consulta,
                cs.data AS data_consulta, cs.horario AS horario_consulta,
-               cs.observacao_administrativa
+               cs.observacao_administrativa,
+               itens.procedimentos,
+               cs.id_consulta IS NOT NULL AND NOT EXISTS (
+                   SELECT 1 FROM faturamento f WHERE f.id_consulta = cs.id_consulta
+               ) AS aceita_procedimento
         FROM agendamento a JOIN paciente p USING (id_paciente)
         JOIN medico m USING (id_medico) JOIN usuario u USING (id_usuario)
         LEFT JOIN consulta cs USING (id_agendamento)
         LEFT JOIN LATERAL (
+            SELECT string_agg(pr.nome || ' × ' || cp.quantidade, ', ' ORDER BY pr.nome) AS procedimentos
+            FROM consulta_procedimento cp JOIN procedimento pr USING (id_procedimento)
+            WHERE cp.id_consulta = cs.id_consulta
+        ) itens ON true
+        LEFT JOIN LATERAL (
             SELECT string_agg(e.nome_especialidade, ', ' ORDER BY e.nome_especialidade) AS nomes
             FROM medico_especialidade me JOIN especialidades e USING (id_especialidade)
-            WHERE me.id_medico = m.id_medico
+            WHERE me.id_medico = m.id_medico AND e.status = 'ativo'
         ) especialidades ON true
         WHERE (%(usuario)s::uuid IS NULL OR m.id_usuario = %(usuario)s)
           AND (%(data)s::date IS NULL OR a.data = %(data)s)
@@ -339,7 +361,7 @@ def faturamento(inicio: date | None = None, fim: date | None = None,
     with connect() as conn:
         return conn.execute("""
             SELECT cs.id_consulta, cs.data, p.nome AS paciente, c.nome AS convenio,
-                   f.id_faturamento, f.valor_total, f.status, f.forma_pagamento, f.data_pagamento,
+                   f.id_faturamento, f.valor_total, f.status, f.forma_pagamento, f.data_pagamento, f.motivo_cancelamento,
                    itens.total AS valor_procedimentos, itens.procedimentos
             FROM consulta cs JOIN agendamento a USING (id_agendamento)
             JOIN paciente p ON p.id_paciente = a.id_paciente
@@ -361,19 +383,47 @@ def faturamento(inicio: date | None = None, fim: date | None = None,
         """, {"inicio": inicio, "fim": fim, "convenio": id_convenio, "particular": particular}).fetchall()
 
 
+def obter_consulta_faturavel(conn, id_consulta, user):
+    consulta = conn.execute("""
+        SELECT cs.status, cs.data, a.id_paciente_convenio, a.id_paciente, m.id_usuario
+        FROM consulta cs JOIN agendamento a USING (id_agendamento) JOIN medico m USING (id_medico)
+        WHERE cs.id_consulta = %s FOR UPDATE OF cs
+    """, (id_consulta,)).fetchone()
+    if not consulta or (user['perfil'] == 'medico' and consulta['id_usuario'] != user['id_usuario']):
+        raise HTTPException(404, "Consulta não encontrada")
+    if conn.execute("SELECT 1 FROM faturamento WHERE id_consulta = %s", (id_consulta,)).fetchone():
+        raise HTTPException(409, "Já existe faturamento para esta consulta")
+    return consulta
+
+
 @router.post("/faturamento", status_code=201, dependencies=[Depends(equipe)])
-def registrar_fatura(dados: Fatura):
+def registrar_fatura(dados: Fatura, user=Depends(current_user)):
+    with connect() as conn:
+        consulta = obter_consulta_faturavel(conn, dados.id_consulta, user)
+        if consulta['status'] != 'realizada' or bool(consulta['id_paciente_convenio']) != (dados.forma_pagamento == 'convenio'):
+            raise HTTPException(422, "Confira o atendimento concluído e a forma de pagamento")
+        total = conn.execute("""
+            SELECT sum(valor * quantidade) AS total FROM consulta_procedimento WHERE id_consulta = %s
+        """, (dados.id_consulta,)).fetchone()['total']
+        if total is None:
+            raise HTTPException(422, "Adicione pelo menos um procedimento à consulta")
+        if total > Decimal('9999999999.99'):
+            raise HTTPException(422, "O total dos procedimentos excede o limite do faturamento")
+        return conn.execute("""
+            INSERT INTO faturamento (id_consulta, valor_total, forma_pagamento, status)
+            VALUES (%s, %s, %s, 'pendente') RETURNING id_faturamento, valor_total
+        """, (dados.id_consulta, total, dados.forma_pagamento)).fetchone()
+
+
+@router.patch("/faturamento/{id_faturamento}/cancelamento", dependencies=[Depends(equipe)])
+def cancelar_faturamento(id_faturamento: UUID, dados: CancelamentoFatura):
     with connect() as conn:
         registro = conn.execute("""
-            INSERT INTO faturamento (id_consulta, valor_total, forma_pagamento, status)
-            SELECT cs.id_consulta, %s, %s, 'pendente'
-            FROM consulta cs JOIN agendamento a USING (id_agendamento)
-            WHERE cs.id_consulta = %s AND cs.status = 'realizada'
-              AND (a.id_paciente_convenio IS NOT NULL) = (%s = 'convenio')
-            ON CONFLICT (id_consulta) DO NOTHING RETURNING id_faturamento
-        """, (dados.valor_total, dados.forma_pagamento, dados.id_consulta, dados.forma_pagamento)).fetchone()
+            UPDATE faturamento SET status = 'cancelado', cancelado_em = now(), motivo_cancelamento = %s
+            WHERE id_faturamento = %s AND status = 'pendente' RETURNING id_faturamento
+        """, (dados.motivo, id_faturamento)).fetchone()
         if not registro:
-            raise HTTPException(409, "Confira o atendimento concluído, a forma de pagamento e se já existe faturamento")
+            raise HTTPException(409, "Somente cobranças pendentes podem ser canceladas")
         return registro
 
 

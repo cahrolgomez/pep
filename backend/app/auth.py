@@ -1,6 +1,7 @@
 import hashlib
 import secrets
 from typing import Literal
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Response
 from pydantic import BaseModel, Field, field_validator
@@ -32,7 +33,12 @@ class Cadastro(Login):
     cpf: str | None = Field(default=None, pattern=r"^[0-9]{11}$")
     crm: str | None = Field(default=None, min_length=1, max_length=30)
     telefone: str | None = Field(default=None, max_length=20)
-    id_especialidade: int | None = Field(default=None, gt=0)
+    id_especialidade: UUID | int | None = None
+
+
+class AlteracaoSenha(BaseModel):
+    senha_atual: str = Field(min_length=1, max_length=128)
+    nova_senha: str = Field(min_length=8, max_length=128)
 
 
 def current_user(authorization: str = Header(default='')):
@@ -49,10 +55,16 @@ def current_user(authorization: str = Header(default='')):
     return user
 
 
+def administrador(user=Depends(current_user)):
+    if user['perfil'] != 'administrador':
+        raise HTTPException(403, 'Acesso restrito a administradores')
+    return user
+
+
 @router.post('/auth/login')
 def login(data: Login):
     with connect() as conn:
-        user = conn.execute('SELECT * FROM usuario WHERE lower(email) = %s', (data.email,)).fetchone()
+        user = conn.execute('SELECT * FROM usuario WHERE lower(email) = %s FOR SHARE', (data.email,)).fetchone()
         if not user or not verify_password(data.senha, user['senha']) or user['status'] != 'ativo':
             raise HTTPException(401, 'E-mail ou senha inválidos')
         token = secrets.token_urlsafe(32)
@@ -65,6 +77,41 @@ def login(data: Login):
 @router.get('/auth/me')
 def me(user=Depends(current_user)):
     return user
+
+
+@router.patch('/auth/senha', status_code=204)
+def alterar_senha(data: AlteracaoSenha, authorization: str = Header(default=''), user=Depends(current_user)):
+    token_hash = hashlib.sha256(authorization.partition(' ')[2].encode()).hexdigest()
+    with connect() as conn:
+        conta = conn.execute('SELECT senha, status FROM usuario WHERE id_usuario = %s FOR UPDATE',
+                             (user['id_usuario'],)).fetchone()
+        if conta['status'] != 'ativo' or not verify_password(data.senha_atual, conta['senha']):
+            raise HTTPException(422, 'Senha atual incorreta')
+        conn.execute('UPDATE usuario SET senha = %s WHERE id_usuario = %s',
+                     (hash_password(data.nova_senha), user['id_usuario']))
+        conn.execute('DELETE FROM sessao WHERE id_usuario = %s AND token_hash <> %s',
+                     (user['id_usuario'], token_hash))
+
+
+@router.get('/usuarios')
+def listar_usuarios(actor=Depends(administrador)):
+    with connect() as conn:
+        return conn.execute('SELECT id_usuario, name, email, perfil, status, telefone FROM usuario ORDER BY name, email').fetchall()
+
+
+@router.patch('/usuarios/{id_usuario}/desativacao', status_code=204)
+def desativar_usuario(id_usuario: UUID, actor=Depends(administrador)):
+    if id_usuario == actor['id_usuario']:
+        raise HTTPException(409, 'Peça a outro administrador para desativar sua conta')
+    with connect() as conn:
+        conn.execute('SELECT pg_advisory_xact_lock(417204)')
+        if not conn.execute("SELECT 1 FROM usuario WHERE id_usuario = %s AND status = 'ativo'",
+                            (actor['id_usuario'],)).fetchone():
+            raise HTTPException(403, 'Conta administrativa inativa')
+        if not conn.execute("UPDATE usuario SET status = 'inativo' WHERE id_usuario = %s RETURNING id_usuario",
+                            (id_usuario,)).fetchone():
+            raise HTTPException(404, 'Usuário não encontrado')
+        conn.execute('DELETE FROM sessao WHERE id_usuario = %s', (id_usuario,))
 
 
 @router.post('/auth/logout', status_code=204)
@@ -85,34 +132,39 @@ def listar_medicos(user=Depends(current_user)):
             FROM medico m
             JOIN usuario u USING (id_usuario)
             LEFT JOIN medico_especialidade me USING (id_medico)
-            LEFT JOIN especialidades e USING (id_especialidade)
+            LEFT JOIN especialidades e ON e.id_especialidade = me.id_especialidade AND e.status = 'ativo'
             GROUP BY m.id_medico, u.name, u.status
             ORDER BY u.name, m.crm
         """).fetchall()
 
 
 @router.post('/usuarios', status_code=201)
-def register(data: Cadastro, actor=Depends(current_user)):
-    if actor['perfil'] != 'administrador':
-        raise HTTPException(403, 'Somente administradores podem cadastrar usuários')
+def register(data: Cadastro, actor=Depends(administrador)):
     if not data.name.strip() or (data.perfil == 'medico' and not (data.crm or '').strip()):
         raise HTTPException(422, 'Informe o nome e, para médicos, o CRM')
     if data.perfil == 'medico' and not data.cpf:
         raise HTTPException(422, 'Informe o CPF do médico')
-    if data.perfil != 'medico' and (data.crm or data.telefone or data.cpf or data.id_especialidade):
-        raise HTTPException(422, 'CPF, CRM e telefone são exclusivos do cadastro de médico')
+    if data.perfil != 'medico' and (data.crm or data.cpf or data.id_especialidade):
+        raise HTTPException(422, 'CPF, CRM e especialidade são exclusivos do cadastro de médico')
     try:
         with connect() as conn:
-            user = conn.execute('''INSERT INTO usuario (name,email,perfil,status,senha)
-                VALUES (%s,%s,%s,'ativo',%s) RETURNING id_usuario,name,email,perfil,status''',
-                (data.name.strip(), data.email, data.perfil, hash_password(data.senha))).fetchone()
+            user = conn.execute('''INSERT INTO usuario (name,email,perfil,status,senha,telefone)
+                VALUES (%s,%s,%s,'ativo',%s,%s) RETURNING id_usuario,name,email,perfil,status''',
+                (data.name.strip(), data.email, data.perfil, hash_password(data.senha), data.telefone)).fetchone()
             if data.perfil == 'medico':
                 medico = conn.execute('''INSERT INTO medico (id_usuario,crm,telefone,cpf)
                     VALUES (%s,%s,%s,%s) RETURNING id_medico''',
                     (user['id_usuario'], data.crm.strip(), data.telefone, data.cpf)).fetchone()
-                if data.id_especialidade:
-                    conn.execute('INSERT INTO medico_especialidade VALUES (%s,%s)',
-                                 (medico['id_medico'], data.id_especialidade))
+                if data.id_especialidade is not None:
+                    especialidade = data.id_especialidade
+                    vinculo = conn.execute("""INSERT INTO medico_especialidade (id_medico, id_especialidade)
+                        SELECT %s, id_especialidade FROM especialidades
+                        WHERE status = 'ativo' AND (id_especialidade = %s OR id_legado = %s)
+                        RETURNING id_especialidade""", (medico['id_medico'],
+                        especialidade if isinstance(especialidade, UUID) else None,
+                        especialidade if isinstance(especialidade, int) else None)).fetchone()
+                    if not vinculo:
+                        raise HTTPException(422, 'Selecione uma especialidade ativa')
             return user
     except UniqueViolation:
         raise HTTPException(409, 'E-mail, CRM ou CPF já cadastrado')
