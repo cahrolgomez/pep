@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { AppLayout } from "../layouts/AppLayout";
 import { Cadastro, EstadoDados } from "../components/Operacoes";
 import { useDados } from "../hooks/useDados";
@@ -19,6 +19,7 @@ export default function NovoAgendamento() {
   const medicos = useDados<Medico[]>("medicos");
   const horarios = useDados<Horario[]>(medico && data ? "disponibilidades?" + new URLSearchParams({ id_medico: medico, data }) : null, versao);
   const convenios = useDados<Vinculo[]>(paciente && data ? "pacientes/" + paciente + "/convenios?" + new URLSearchParams({ data }) : null);
+  const semHorarios = horarios.data?.length === 0;
 
   return <AppLayout>
     <div className="page-heading"><h1>Agendar consulta</h1></div>
@@ -26,6 +27,10 @@ export default function NovoAgendamento() {
       <h2>Dados do agendamento</h2>
       <EstadoDados loading={medicos.loading || pacientes.loading || horarios.loading || convenios.loading}
         error={medicos.error || pacientes.error || horarios.error || convenios.error} />
+      {semHorarios && <p role="status">
+        Não há horários livres para o profissional nessa data. Escolha outra data ou{" "}
+        <Link to={"/agenda?" + new URLSearchParams({ data, id_medico: medico }) + "#disponibilidade"}>libere um horário na agenda</Link>.
+      </p>}
       <Cadastro label="Salvar agendamento" disabled={!paciente || !horarios.data?.length || convenios.loading || !!convenios.error}
         concluido={() => navigate("/agenda?" + new URLSearchParams({ data }))}
         enviar={async fields => {
@@ -53,8 +58,8 @@ export default function NovoAgendamento() {
           </option>)}
         </select></label>
         <label>Data<input type="date" required value={data} onChange={event => setData(event.target.value)} /></label>
-        <label>Horário disponível<select name="horario" key={medico + data + versao} required>
-          <option value="">{horarios.data?.length === 0 ? "Nenhum horário disponível" : "Selecione"}</option>
+        <label>Horário disponível<select name="horario" key={medico + data + versao} required disabled={!horarios.data?.length}>
+          <option value="">{!medico || !data ? "Selecione o médico e a data" : semHorarios ? "Nenhum horário disponível" : "Selecione"}</option>
           {horarios.data?.map(item => <option key={item.id_disponibilidade} value={item.id_disponibilidade}>{item.horario.slice(0, 5)}</option>)}
         </select></label>
         <label>Convênio<select name="convenio" key={paciente + data}>

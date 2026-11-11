@@ -42,9 +42,13 @@ export function AcaoStatus({ path, status, atualizar }: { path: string; status: 
     executar={() => salvar(path, { status: status === "ativo" ? "inativo" : "ativo" }, "PATCH")} />;
 }
 
-export function Horarios({ medical = false }: { medical?: boolean }) {
-  const [data, setData] = useState("");
-  const [medico, setMedico] = useState("");
+export function Horarios({ medical = false, dataInicial = "", medicoInicial = "" }: {
+  medical?: boolean;
+  dataInicial?: string;
+  medicoInicial?: string;
+}) {
+  const [data, setData] = useState(dataInicial);
+  const [medico, setMedico] = useState(medicoInicial);
   const [versao, setVersao] = useState(0);
   const medicos = useDados<Medico[]>(medical ? null : "medicos");
   const params = new URLSearchParams({ data });
@@ -52,7 +56,7 @@ export function Horarios({ medical = false }: { medical?: boolean }) {
   const horarios = useDados<{ id_disponibilidade: string; horario: string; medico: string; status: string }[]>(
     data ? "horarios?" + params : null, versao);
   const atualizar = () => setVersao(v => v + 1);
-  return <section className="card">
+  return <section className="card" id="disponibilidade">
     <h2>Disponibilidade de horários</h2>
     <EstadoDados loading={medicos.loading} error={medicos.error} />
     <Cadastro label="Liberar horário" disabled={!data || (!medical && !medico)}

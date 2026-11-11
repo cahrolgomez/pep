@@ -40,6 +40,6 @@ export default function Agenda() {
         </tr>)}
       </Tabela>}
     </section>
-    <Horarios />
+    <Horarios dataInicial={params.get("data") ?? ""} medicoInicial={params.get("id_medico") ?? ""} />
   </AppLayout>;
 }
