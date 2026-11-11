@@ -8,6 +8,7 @@ type Paciente = {
   nome: string;
   cpf_mascarado: string;
   telefone: string | null;
+  convenios: string | null;
 };
 
 export default function Pacientes() {
@@ -75,6 +76,7 @@ export default function Pacientes() {
                   <th scope="col">
                     Contato
                   </th>
+                  <th scope="col">Ação</th>
                 </tr>
               </thead>
               <tbody>
@@ -87,8 +89,9 @@ export default function Pacientes() {
                   <tr key={paciente.id_paciente}>
                     <td>{paciente.nome}</td>
                     <td>{paciente.cpf_mascarado}</td>
-                    <td>—</td>
+                    <td>{paciente.convenios ?? "Particular"}</td>
                     <td>{paciente.telefone ?? "—"}</td>
+                    <td><Link to={"/historico?paciente=" + paciente.id_paciente}>Ver histórico</Link></td>
                   </tr>
                 ))}
               </tbody>

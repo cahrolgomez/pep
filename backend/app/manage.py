@@ -17,27 +17,28 @@ def migrate():
     with connect() as conn:
         conn.execute('SELECT pg_advisory_xact_lock(417203)')
         conn.execute('CREATE TABLE IF NOT EXISTS schema_migrations (version TEXT PRIMARY KEY, aplicada_em TIMESTAMPTZ DEFAULT now())')
-        if conn.execute("SELECT 1 FROM schema_migrations WHERE version='001_auth'").fetchone():
-            conn.execute((SQL / 'migrations/003_medico_cpf.sql').read_text(encoding='utf-8'))
-            print('Banco atualizado.')
-            return
-        exists = conn.execute("SELECT to_regclass('public.usuario') AS tabela").fetchone()['tabela']
-        if not exists:
-            conn.execute((SQL / 'schema.sql').read_text(encoding='utf-8-sig'))
-        else:
-            conn.execute('LOCK TABLE usuario IN ACCESS EXCLUSIVE MODE')
-            conn.execute('ALTER TABLE usuario ADD COLUMN IF NOT EXISTS senha VARCHAR(255)')
-            users = conn.execute('SELECT id_usuario, senha FROM usuario').fetchall()
-            for user in users:
-                password = user['senha'] or secrets.token_urlsafe(48)
-                if not password.startswith('pbkdf2_sha256$600000$'):
-                    conn.execute('UPDATE usuario SET senha=%s WHERE id_usuario=%s',
-                                 (hash_password(password), user['id_usuario']))
-            conn.execute('ALTER TABLE usuario ALTER COLUMN senha SET NOT NULL')
-            conn.execute((SQL / 'migrations/001_auth.sql').read_text(encoding='utf-8-sig'))
+        if not conn.execute("SELECT 1 FROM schema_migrations WHERE version='001_auth'").fetchone():
+            exists = conn.execute("SELECT to_regclass('public.usuario') AS tabela").fetchone()['tabela']
+            if not exists:
+                conn.execute((SQL / 'schema.sql').read_text(encoding='utf-8-sig'))
+            else:
+                conn.execute('LOCK TABLE usuario IN ACCESS EXCLUSIVE MODE')
+                conn.execute('ALTER TABLE usuario ADD COLUMN IF NOT EXISTS senha VARCHAR(255)')
+                users = conn.execute('SELECT id_usuario, senha FROM usuario').fetchall()
+                for user in users:
+                    password = user['senha'] or secrets.token_urlsafe(48)
+                    if not password.startswith('pbkdf2_sha256$600000$'):
+                        conn.execute('UPDATE usuario SET senha=%s WHERE id_usuario=%s',
+                                     (hash_password(password), user['id_usuario']))
+                conn.execute('ALTER TABLE usuario ALTER COLUMN senha SET NOT NULL')
+                conn.execute((SQL / 'migrations/001_auth.sql').read_text(encoding='utf-8-sig'))
+            conn.execute("INSERT INTO schema_migrations(version) VALUES ('001_auth')")
         conn.execute((SQL / 'migrations/003_medico_cpf.sql').read_text(encoding='utf-8'))
-        conn.execute("INSERT INTO schema_migrations(version) VALUES ('001_auth')")
-    print('Migração concluída; cadastros preservados. Senhas vazias foram inutilizadas.')
+        for version in ('004_tabelas_operacionais', '005_campos_administrativos'):
+            if not conn.execute('SELECT 1 FROM schema_migrations WHERE version=%s', (version,)).fetchone():
+                conn.execute((SQL / f'migrations/{version}.sql').read_text(encoding='utf-8'))
+                conn.execute('INSERT INTO schema_migrations(version) VALUES (%s)', (version,))
+    print('Banco atualizado.')
 
 
 def main():

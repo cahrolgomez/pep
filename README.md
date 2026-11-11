@@ -51,7 +51,7 @@ backend/
     main.py           Aplicação e rotas de saúde
 ```
 
-A base contém usuários, médicos, especialidades, vínculos e sessões. Cadastro de usuários e autenticação estão implementados na API; as demais telas continuam usando dados ilustrativos.
+A API usa PostgreSQL para autenticação, pacientes, médicos, especialidades, convênios, planos, agenda, histórico de consultas e faturamento. O prontuário clínico permanece na etapa demonstrativa para integração posterior com MongoDB.
 
 ## SQL, migrações e login
 

@@ -4,7 +4,7 @@ from typing import Literal
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Response
 from pydantic import BaseModel, Field, field_validator
-from psycopg.errors import UniqueViolation
+from psycopg.errors import ForeignKeyViolation, UniqueViolation
 
 from .database import connect
 from .security import hash_password, verify_password
@@ -32,6 +32,7 @@ class Cadastro(Login):
     cpf: str | None = Field(default=None, pattern=r"^[0-9]{11}$")
     crm: str | None = Field(default=None, min_length=1, max_length=30)
     telefone: str | None = Field(default=None, max_length=20)
+    id_especialidade: int | None = Field(default=None, gt=0)
 
 
 def current_user(authorization: str = Header(default='')):
@@ -98,7 +99,7 @@ def register(data: Cadastro, actor=Depends(current_user)):
         raise HTTPException(422, 'Informe o nome e, para médicos, o CRM')
     if data.perfil == 'medico' and not data.cpf:
         raise HTTPException(422, 'Informe o CPF do médico')
-    if data.perfil != 'medico' and (data.crm or data.telefone or data.cpf):
+    if data.perfil != 'medico' and (data.crm or data.telefone or data.cpf or data.id_especialidade):
         raise HTTPException(422, 'CPF, CRM e telefone são exclusivos do cadastro de médico')
     try:
         with connect() as conn:
@@ -106,8 +107,14 @@ def register(data: Cadastro, actor=Depends(current_user)):
                 VALUES (%s,%s,%s,'ativo',%s) RETURNING id_usuario,name,email,perfil,status''',
                 (data.name.strip(), data.email, data.perfil, hash_password(data.senha))).fetchone()
             if data.perfil == 'medico':
-                conn.execute('INSERT INTO medico (id_usuario,crm,telefone,cpf) VALUES (%s,%s,%s,%s)',
-                             (user['id_usuario'], data.crm.strip(), data.telefone, data.cpf))
+                medico = conn.execute('''INSERT INTO medico (id_usuario,crm,telefone,cpf)
+                    VALUES (%s,%s,%s,%s) RETURNING id_medico''',
+                    (user['id_usuario'], data.crm.strip(), data.telefone, data.cpf)).fetchone()
+                if data.id_especialidade:
+                    conn.execute('INSERT INTO medico_especialidade VALUES (%s,%s)',
+                                 (medico['id_medico'], data.id_especialidade))
             return user
     except UniqueViolation:
         raise HTTPException(409, 'E-mail, CRM ou CPF já cadastrado')
+    except ForeignKeyViolation:
+        raise HTTPException(422, 'Especialidade não encontrada')

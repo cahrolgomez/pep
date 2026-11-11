@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { apiRequest } from "../services/api";
 import { AppLayout } from "../layouts/AppLayout";
+import { useDados } from "../hooks/useDados";
+import type { Especialidade } from "../services/operacoes";
 type Medico = {
  id_medico: string;
  nome: string;
@@ -16,6 +18,7 @@ export default function Medicos() {
  const [medicos, setMedicos] = useState<Medico[]>([]);
  const [listStatus, setListStatus] = useState("Carregando profissionais…");
  const [listVersion, setListVersion] = useState(0);
+ const especialidades = useDados<Especialidade[]>("especialidades");
 
  useEffect(() => {
   const controller = new AbortController();
@@ -49,6 +52,7 @@ export default function Medicos() {
      email: fields.get("email"),
      senha: fields.get("senha"),
      telefone: fields.get("telefone"),
+     id_especialidade: fields.get("especialidade") ? Number(fields.get("especialidade")) : null,
     }),
    });
    form.reset();
@@ -141,7 +145,12 @@ export default function Medicos() {
                 Telefone
                 <input name="telefone" type="tel" maxLength={20} required />
               </label>
+              <label>Especialidade<select name="especialidade">
+                <option value="">Selecione, se aplicável</option>
+                {especialidades.data?.map(item => <option key={item.id_especialidade} value={item.id_especialidade}>{item.nome_especialidade}</option>)}
+              </select></label>
             </div>
+            {especialidades.error && <p role="alert">{especialidades.error}</p>}
             <div className="actions">
               <button type="submit" disabled={saving}>Salvar cadastro</button>
             </div>

@@ -1,76 +1,29 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
 import { AppLayout } from "../layouts/AppLayout";
-import { DemoForm, SearchBody } from "../components/Demo";
+import { Cadastro, EstadoDados, Tabela } from "../components/Operacoes";
+import { useDados } from "../hooks/useDados";
+import { salvar, type Especialidade } from "../services/operacoes";
+
 export default function Especialidades() {
- const search = "";
- return <AppLayout medical={false}>
-        <div className="page-heading">
-          <div>
-            <p className="eyebrow">Cuidado em cada detalhe</p>
-            <h1>Especialidades</h1>
-            <p>Mantenha os cadastros de apoio atualizados.</p>
-          </div>
-        </div>
-        <section className="card">
-          <h2>Cadastros disponíveis</h2>
-          <div className="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th scope="col">
-                    Especialidade
-                  </th>
-                  <th scope="col">
-                    Descrição
-                  </th>
-                </tr>
-              </thead>
-              <SearchBody search={search}>
-                <tr>
-                  <td>
-                    Clínica geral
-                  </td>
-                  <td>
-                    Atendimento clínico geral
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    Cardiologia
-                  </td>
-                  <td>
-                    Saúde cardiovascular
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    Dermatologia
-                  </td>
-                  <td>
-                    Saúde da pele
-                  </td>
-                </tr>
-              </SearchBody>
-            </table>
-          </div>
-        </section>
-        <section className="card">
-          <h2>Novo cadastro</h2>
-          <DemoForm demo>
-            <div className="form-grid">
-              <label>
-                Nome da especialidade
-                <input name="nome" type="text" required />
-              </label>
-              <label>
-                Descrição
-                <input name="descricao" type="text" required />
-              </label>
-            </div>
-            <div className="actions">
-              <button type="submit">Salvar cadastro</button>
-            </div>
-          </DemoForm>
-        </section>
-      </AppLayout>;
+  const [versao, setVersao] = useState(0);
+  const lista = useDados<Especialidade[]>("especialidades", versao);
+  return <AppLayout>
+    <div className="page-heading"><h1>Especialidades</h1></div>
+    <section className="card">
+      <h2>Especialidades cadastradas</h2>
+      <EstadoDados loading={lista.loading} error={lista.error} empty={lista.data?.length === 0 ? "Nenhuma especialidade cadastrada." : undefined} />
+      {!!lista.data?.length && <Tabela colunas={["Especialidade", "Descrição", "Profissionais"]}>
+        {lista.data.map(item => <tr key={item.id_especialidade}><td>{item.nome_especialidade}</td><td>{item.descricao ?? "—"}</td><td>{item.profissionais}</td></tr>)}
+      </Tabela>}
+    </section>
+    <section className="card">
+      <h2>Nova especialidade</h2>
+      <Cadastro concluido={() => setVersao(v => v + 1)} enviar={fields => salvar("especialidades", {
+        nome: fields.get("nome"), descricao: fields.get("descricao") || null,
+      })}>
+        <label>Nome da especialidade<input name="nome" required maxLength={100} /></label>
+        <label>Descrição<input name="descricao" maxLength={500} /></label>
+      </Cadastro>
+    </section>
+  </AppLayout>;
 }

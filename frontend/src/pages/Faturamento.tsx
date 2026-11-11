@@ -1,168 +1,123 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { AppLayout } from "../layouts/AppLayout";
-import { DemoForm, SearchBody } from "../components/Demo";
+import { Cadastro, EstadoDados, Tabela } from "../components/Operacoes";
+import { useDados } from "../hooks/useDados";
+import { diaBr, salvar, type Convenio } from "../services/operacoes";
+
+type Atendimento = {
+  id_consulta: string;
+  data: string;
+  paciente: string;
+  convenio: string | null;
+  id_faturamento: string | null;
+  valor_total: number | null;
+  valor_procedimentos: number | null;
+  procedimentos: string | null;
+  status: string | null;
+};
+
+const moeda = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
+
 export default function Faturamento() {
- const search = "";
- const [closing, setClosing] = useState(false);
- return <AppLayout medical={false}>
-        <div className="page-heading">
-          <div>
-            <p className="eyebrow">Cuidado em cada detalhe</p>
-            <h1>Faturamento</h1>
-            <p>Consulte atendimentos e acompanhe o fechamento por período.</p>
-          </div>
-        </div>
-        <section className="card">
-          <h2>Período de referência</h2>
-          <DemoForm filter className="toolbar">
-            <label>
-              De
-              <input name="inicio" type="date" required />
-            </label>
-            <label>
-              Até
-              <input name="fim" type="date" required />
-            </label>
-            <label>
-              Convênio
-              <select name="convenio" required>
-                <option>Todos os convênios</option>
-                <option>Vida Saúde</option>
-                <option>Bem Cuidar</option>
-                <option>Particular</option>
-              </select>
-            </label>
-            <button>Consultar período</button>
-          </DemoForm>
-        </section>
-        <div className="stats">
-          <article className="card stat">
-            <span className="muted">Total realizado</span>
-            <strong>R$ 8.450</strong>
-            <small>42 atendimentos</small>
-          </article>
-          <article className="card stat">
-            <span className="muted">Convênios</span>
-            <strong>R$ 6.300</strong>
-            <small>32 atendimentos</small>
-          </article>
-          <article className="card stat">
-            <span className="muted">Particular</span>
-            <strong>R$ 2.150</strong>
-            <small>10 atendimentos</small>
-          </article>
-          <article className="card stat">
-            <span className="muted">Pendentes</span>
-            <strong>2</strong>
-            <small>Aguardando revisão</small>
-          </article>
-        </div>
-        <section className="card">
-          <h2>Atendimentos para faturamento</h2>
-          <div className="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th scope="col">
-                    Atendimento
-                  </th>
-                  <th scope="col">
-                    Data
-                  </th>
-                  <th scope="col">
-                    Paciente
-                  </th>
-                  <th scope="col">
-                    Convênio
-                  </th>
-                  <th scope="col">
-                    Valor
-                  </th>
-                  <th scope="col">
-                    Situação
-                  </th>
-                </tr>
-              </thead>
-              <SearchBody search={search}>
-                <tr>
-                  <td>
-                    ATD-001
-                  </td>
-                  <td>
-                    29/10/2026
-                  </td>
-                  <td>
-                    Pedro Almeida
-                  </td>
-                  <td>
-                    Particular
-                  </td>
-                  <td>
-                    R$ 215,00
-                  </td>
-                  <td>
-                    Registrado
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    ATD-002
-                  </td>
-                  <td>
-                    29/10/2026
-                  </td>
-                  <td>
-                    Marina Oliveira
-                  </td>
-                  <td>
-                    Vida Saúde
-                  </td>
-                  <td>
-                    R$ 180,00
-                  </td>
-                  <td>
-                    Registrado
-                  </td>
-                </tr>
-              </SearchBody>
-            </table>
-          </div>
-        </section>
-        <section className="card">
-          <h2>Registrar faturamento</h2>
-          <DemoForm demo>
-            <div className="form-grid">
-              <label>
-                Atendimento concluído
-                <select name="atendimento" required>
-                  <option>ATD-001 — Pedro Almeida</option>
-                  <option>ATD-002 — Marina Oliveira</option>
-                </select>
-              </label>
-              <label>
-                Valor (R$)
-                <input name="valor" type="number" required />
-              </label>
-              <label>
-                Convênio
-                <select name="convenio" required>
-                  <option>Particular</option>
-                  <option>Vida Saúde</option>
-                  <option>Bem Cuidar</option>
-                </select>
-              </label>
-            </div>
-            <div className="actions">
-              <button type="submit">Simular registro</button>
-            </div>
-          </DemoForm>
-        </section>
-        <section className="card">
-          <h2>Fechamento mensal</h2>
-          <p className="muted">Revise os atendimentos e as pendências antes de consolidar as cobranças.</p>
-          <button type="button" onClick={() => setClosing(true)}>Simular fechamento de outubro</button>
-          <p role="status" className="feedback" id="closing-feedback">{closing ? "Simulação de fechamento concluída. Nenhuma cobrança foi gerada." : ""}</p>
-        </section>
-      </AppLayout>;
+  const [params, setParams] = useSearchParams();
+  const [versao, setVersao] = useState(0);
+  const [consulta, setConsulta] = useState("");
+  const [salvando, setSalvando] = useState(false);
+  const [feedback, setFeedback] = useState("");
+  const convenios = useDados<Convenio[]>("convenios");
+  const faturamento = useDados<Atendimento[]>("faturamento?" + params, versao);
+  const lista = faturamento.data ?? [];
+  const selecionado = lista.find(item => item.id_consulta === consulta && !item.id_faturamento);
+  const pendentes = lista.filter(item => item.status !== "pago");
+  const total = (itens: Atendimento[]) => moeda.format(itens.reduce((centavos, item) => centavos + Math.round(Number(item.valor_total ?? 0) * 100), 0) / 100);
+  const atualizar = () => setVersao(v => v + 1);
+
+  async function registrarPagamento(id: string) {
+    setSalvando(true);
+    setFeedback("");
+    try {
+      await salvar("faturamento/" + id + "/pagamento", {}, "PATCH");
+      atualizar();
+    } catch (error) {
+      setFeedback(error instanceof Error ? error.message : "Não foi possível registrar o pagamento.");
+    } finally {
+      setSalvando(false);
+    }
+  }
+
+  return <AppLayout>
+    <div className="page-heading"><h1>Faturamento</h1></div>
+    <section className="card">
+      <h2>Período de referência</h2>
+      <form className="toolbar" onSubmit={event => {
+        event.preventDefault();
+        const campos = new FormData(event.currentTarget);
+        const filtros = new URLSearchParams();
+        for (const key of ["inicio", "fim"]) {
+          const valor = campos.get(key);
+          if (valor) filtros.set(key, String(valor));
+        }
+        const convenio = campos.get("convenio");
+        if (convenio === "particular") filtros.set("particular", "true");
+        else if (convenio) filtros.set("id_convenio", String(convenio));
+        setParams(filtros);
+        setConsulta("");
+      }}>
+        <label>De<input name="inicio" type="date" defaultValue={params.get("inicio") ?? ""} /></label>
+        <label>Até<input name="fim" type="date" defaultValue={params.get("fim") ?? ""} /></label>
+        <label>Convênio<select name="convenio" key={String(convenios.loading)} defaultValue={params.get("id_convenio") ?? (params.has("particular") ? "particular" : "")}>
+          <option value="">Todos</option><option value="particular">Particular</option>
+          {convenios.data?.map(item => <option key={item.id_convenio} value={item.id_convenio}>{item.nome}</option>)}
+        </select></label>
+        <button>Consultar período</button>
+      </form>
+      <EstadoDados loading={convenios.loading} error={convenios.error} />
+    </section>
+    <EstadoDados loading={faturamento.loading} error={faturamento.error} />
+    {faturamento.data && <>
+      <div className="stats">
+        <article className="card stat"><span className="muted">Total faturado</span><strong>{total(lista)}</strong></article>
+        <article className="card stat"><span className="muted">Convênios</span><strong>{total(lista.filter(item => item.convenio))}</strong></article>
+        <article className="card stat"><span className="muted">Particular</span><strong>{total(lista.filter(item => !item.convenio))}</strong></article>
+        <article className="card stat"><span className="muted">Atendimentos pendentes</span><strong>{pendentes.length}</strong></article>
+      </div>
+      <section className="card">
+        <h2>Atendimentos para faturamento</h2>
+        {lista.length ? <Tabela colunas={["Data", "Paciente", "Convênio", "Procedimentos", "Valor faturado", "Situação", "Ação"]}>
+          {lista.map(item => <tr key={item.id_consulta}>
+            <td>{diaBr(item.data)}</td><td>{item.paciente}</td><td>{item.convenio ?? "Particular"}</td><td>{item.procedimentos ?? "—"}</td>
+            <td>{item.valor_total == null ? "—" : moeda.format(Number(item.valor_total))}</td>
+            <td>{item.status === "pago" ? "Pago" : item.status === "pendente" ? "Aguardando pagamento" : item.status ?? "A faturar"}</td>
+            <td>{item.id_faturamento && item.status === "pendente" &&
+              <button type="button" disabled={salvando} onClick={() => registrarPagamento(item.id_faturamento!)}>Registrar pagamento</button>}</td>
+          </tr>)}
+        </Tabela> : <p>Nenhum atendimento encontrado.</p>}
+        {feedback && <p role="alert">{feedback}</p>}
+      </section>
+      <section className="card">
+        <h2>Registrar faturamento</h2>
+        <Cadastro label="Registrar faturamento" disabled={!selecionado} concluido={() => { setConsulta(""); atualizar(); }}
+          enviar={fields => salvar("faturamento", { id_consulta: consulta, valor_total: fields.get("valor"), forma_pagamento: fields.get("forma") })}>
+          <label>Atendimento concluído<select required value={consulta} onChange={event => setConsulta(event.target.value)}>
+            <option value="">Selecione</option>
+            {lista.filter(item => !item.id_faturamento).map(item => <option key={item.id_consulta} value={item.id_consulta}>
+              {item.paciente} · {diaBr(item.data)} · {item.convenio ?? "Particular"}
+            </option>)}
+          </select></label>
+          <label>Valor (R$)<input key={consulta} name="valor" type="number" step="0.01" min="0" max="9999999999.99" defaultValue={selecionado?.valor_procedimentos ?? ""} required /></label>
+          <label>Forma de pagamento<select key={consulta} name="forma" required>
+            {selecionado?.convenio ? <option value="convenio">Convênio</option> : <>
+              <option value="pix">Pix</option><option value="cartao">Cartão</option><option value="dinheiro">Dinheiro</option>
+            </>}
+          </select></label>
+        </Cadastro>
+      </section>
+      <section className="card">
+        <h2>Conferência do período</h2>
+        <p>{total(lista.filter(item => item.status === "pago"))} recebidos · {total(lista.filter(item => item.status === "pendente"))} a receber</p>
+        <p>{lista.filter(item => !item.id_faturamento).length} atendimentos aguardando faturamento.</p>
+      </section>
+    </>}
+  </AppLayout>;
 }

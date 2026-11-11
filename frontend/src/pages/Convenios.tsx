@@ -1,85 +1,51 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
 import { AppLayout } from "../layouts/AppLayout";
-import { DemoForm, SearchBody } from "../components/Demo";
+import { Cadastro, EstadoDados, Tabela } from "../components/Operacoes";
+import { useDados } from "../hooks/useDados";
+import { salvar, type Convenio, type Plano } from "../services/operacoes";
+
 export default function Convenios() {
- const search = "";
- return <AppLayout medical={false}>
-        <div className="page-heading">
-          <div>
-            <p className="eyebrow">Cuidado em cada detalhe</p>
-            <h1>Convênios</h1>
-            <p>Mantenha os cadastros de apoio atualizados.</p>
-          </div>
-        </div>
-        <section className="card">
-          <h2>Cadastros disponíveis</h2>
-          <div className="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th scope="col">
-                    Convênio
-                  </th>
-                  <th scope="col">
-                    Código
-                  </th>
-                  <th scope="col">
-                    Situação
-                  </th>
-                </tr>
-              </thead>
-              <SearchBody search={search}>
-                <tr>
-                  <td>
-                    Vida Saúde
-                  </td>
-                  <td>
-                    CONV-001
-                  </td>
-                  <td>
-                    Ativo
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    Bem Cuidar
-                  </td>
-                  <td>
-                    CONV-002
-                  </td>
-                  <td>
-                    Ativo
-                  </td>
-                </tr>
-              </SearchBody>
-            </table>
-          </div>
-        </section>
-        <section className="card">
-          <h2>Novo cadastro</h2>
-          <DemoForm demo>
-            <div className="form-grid">
-              <label>
-                Nome do convênio
-                <input name="nome" type="text" required />
-              </label>
-              <label>
-                Código de identificação
-                <input name="codigo" type="text" required />
-              </label>
-              <label>
-                Contato
-                <input name="contato" type="tel" required />
-              </label>
-              <label>
-                E-mail
-                <input name="email" type="email" required />
-              </label>
-            </div>
-            <div className="actions">
-              <button type="submit">Salvar cadastro</button>
-            </div>
-          </DemoForm>
-        </section>
-      </AppLayout>;
+  const [versao, setVersao] = useState(0);
+  const convenios = useDados<Convenio[]>("convenios", versao);
+  const planos = useDados<Plano[]>("planos", versao);
+  const atualizar = () => setVersao(v => v + 1);
+  return <AppLayout>
+    <div className="page-heading"><h1>Convênios</h1></div>
+    <section className="card">
+      <h2>Convênios cadastrados</h2>
+      <EstadoDados loading={convenios.loading} error={convenios.error} empty={convenios.data?.length === 0 ? "Nenhum convênio cadastrado." : undefined} />
+      {!!convenios.data?.length && <Tabela colunas={["Convênio", "CNPJ", "Telefone", "E-mail", "Situação"]}>
+        {convenios.data.map(item => <tr key={item.id_convenio}><td>{item.nome}</td><td>{item.cnpj}</td><td>{item.telefone ?? "—"}</td><td>{item.email ?? "—"}</td><td>{item.status}</td></tr>)}
+      </Tabela>}
+    </section>
+    <section className="card">
+      <h2>Novo convênio</h2>
+      <Cadastro concluido={atualizar} enviar={fields => salvar("convenios", {
+        nome: fields.get("nome"), cnpj: String(fields.get("cnpj")).replace(/[.\/\-\s]/g, ""),
+        telefone: fields.get("telefone") || null, email: fields.get("email") || null,
+      })}>
+        <label>Nome<input name="nome" required maxLength={150} /></label>
+        <label>CNPJ<input name="cnpj" required maxLength={18} inputMode="numeric" /></label>
+        <label>Telefone<input name="telefone" type="tel" maxLength={20} /></label>
+        <label>E-mail<input name="email" type="email" maxLength={255} /></label>
+      </Cadastro>
+    </section>
+    <section className="card">
+      <h2>Planos ativos</h2>
+      <EstadoDados loading={planos.loading} error={planos.error} empty={planos.data?.length === 0 ? "Nenhum plano cadastrado." : undefined} />
+      {!!planos.data?.length && <Tabela colunas={["Convênio", "Plano", "Cobertura"]}>
+        {planos.data.map(item => <tr key={item.id_plano}><td>{item.convenio}</td><td>{item.nome}</td><td>{item.cobertura ?? "—"}</td></tr>)}
+      </Tabela>}
+      <h3>Novo plano</h3>
+      <Cadastro concluido={atualizar} disabled={!convenios.data?.some(item => item.status === "ativo")}
+        enviar={fields => salvar("planos", { ...Object.fromEntries(fields), cobertura: fields.get("cobertura") || null })}>
+        <label>Convênio<select name="id_convenio" required>
+          <option value="">Selecione</option>
+          {convenios.data?.filter(item => item.status === "ativo").map(item => <option key={item.id_convenio} value={item.id_convenio}>{item.nome}</option>)}
+        </select></label>
+        <label>Nome do plano<input name="nome" required maxLength={150} /></label>
+        <label>Cobertura<input name="cobertura" maxLength={500} /></label>
+      </Cadastro>
+    </section>
+  </AppLayout>;
 }

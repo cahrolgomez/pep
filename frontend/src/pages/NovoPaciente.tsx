@@ -1,58 +1,46 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { AppLayout } from "../layouts/AppLayout";
-import { DemoForm, SearchBody } from "../components/Demo";
+import { Cadastro, EstadoDados } from "../components/Operacoes";
+import { useDados } from "../hooks/useDados";
+import { salvar, type Plano } from "../services/operacoes";
+
 export default function NovoPaciente() {
- const search = "";
- return <AppLayout medical={false}>
-        <div className="page-heading">
-          <div>
-            <p className="eyebrow">Cuidado em cada detalhe</p>
-            <h1>Cadastrar paciente</h1>
-            <p>Preencha os dados de identificação e contato.</p>
-          </div>
-        </div>
-        <section className="card">
-          <h2>Identificação e contato</h2>
-          <DemoForm demo>
-            <div className="form-grid">
-              <label>
-                Nome completo
-                <input name="nome" type="text" required />
-              </label>
-              <label>
-                CPF
-                <input name="cpf" type="text" required />
-              </label>
-              <label>
-                Data de nascimento
-                <input name="nascimento" type="date" required />
-              </label>
-              <label>
-                Telefone
-                <input name="telefone" type="tel" required />
-              </label>
-              <label>
-                E-mail
-                <input name="email" type="email" required />
-              </label>
-              <label>
-                Endereço
-                <input name="endereco" type="text" required />
-              </label>
-              <label>
-                Convênio
-                <input name="convenio" type="text" required />
-              </label>
-              <label>
-                Número da carteirinha
-                <input name="carteirinha" type="text" required />
-              </label>
-            </div>
-            <div className="actions">
-              <button type="submit">Salvar cadastro</button>
-            </div>
-          </DemoForm>
-        </section>
-        <p className="muted">A regularidade do CPF deverá ser consultada pela integração do sistema; esta tela não realiza essa verificação.</p>
-      </AppLayout>;
+  const navigate = useNavigate();
+  const planos = useDados<Plano[]>("planos");
+  const [plano, setPlano] = useState("");
+
+  return <AppLayout>
+    <div className="page-heading"><h1>Cadastrar paciente</h1></div>
+    <section className="card">
+      <h2>Identificação e contato</h2>
+      <EstadoDados loading={planos.loading} error={planos.error} />
+      <Cadastro concluido={() => navigate("/pacientes")} enviar={fields => salvar("pacientes", {
+        nome: fields.get("nome"),
+        cpf: String(fields.get("cpf")).replace(/[.\-\s]/g, ""),
+        data_nascimento: fields.get("data_nascimento") || null,
+        telefone: fields.get("telefone") || null,
+        email: fields.get("email") || null,
+        endereco: fields.get("endereco") || null,
+        id_plano: plano || null,
+        numero_carteirinha: fields.get("carteirinha") || null,
+        validade: fields.get("validade") || null,
+      })}>
+        <label>Nome completo<input name="nome" required maxLength={150} /></label>
+        <label>CPF<input name="cpf" required inputMode="numeric" maxLength={14} /></label>
+        <label>Data de nascimento<input name="data_nascimento" type="date" required /></label>
+        <label>Telefone<input name="telefone" type="tel" maxLength={20} /></label>
+        <label>E-mail<input name="email" type="email" maxLength={255} /></label>
+        <label>Endereço<input name="endereco" maxLength={255} /></label>
+        <label>Plano<select value={plano} onChange={event => setPlano(event.target.value)}>
+          <option value="">Particular</option>
+          {planos.data?.map(item => <option key={item.id_plano} value={item.id_plano}>{item.convenio} · {item.nome}</option>)}
+        </select></label>
+        {plano && <>
+          <label>Número da carteirinha<input name="carteirinha" required maxLength={80} /></label>
+          <label>Validade da carteirinha<input name="validade" type="date" /></label>
+        </>}
+      </Cadastro>
+    </section>
+  </AppLayout>;
 }

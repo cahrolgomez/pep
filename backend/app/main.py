@@ -10,9 +10,11 @@ from pymongo import MongoClient
 from redis import Redis
 from .auth import current_user, router as auth_router
 from .database import connect
+from .operacoes import router as operacoes_router
 
 app = FastAPI(title="PEP — Prontuário Eletrônico do Paciente", version="0.1.0")
 app.include_router(auth_router)
+app.include_router(operacoes_router)
 
 
 @app.get("/", tags=["Sistema"])
@@ -77,13 +79,24 @@ def listar_pacientes(q: str = "", user=Depends(current_user)):
     with connect() as connection:
         return connection.execute(
             """
-            SELECT id_paciente, nome,
-                   '***.***.***-' || right(cpf, 2) AS cpf_mascarado,
-                   telefone
-            FROM paciente
-            WHERE nome ILIKE %s ESCAPE '!' OR cpf LIKE %s
-            ORDER BY nome, id_paciente
+            SELECT p.id_paciente, p.nome,
+                   '***.***.***-' || right(p.cpf, 2) AS cpf_mascarado,
+                   p.telefone, planos.convenios
+            FROM paciente p
+            LEFT JOIN LATERAL (
+                SELECT string_agg(DISTINCT c.nome, ', ' ORDER BY c.nome) AS convenios
+                FROM paciente_convenio pc JOIN plano pl USING (id_plano) JOIN convenio c USING (id_convenio)
+                WHERE pc.id_paciente = p.id_paciente AND pc.status = 'ativo'
+                  AND pl.status = 'ativo' AND c.status = 'ativo'
+                  AND (pc.validade IS NULL OR pc.validade >= (now() AT TIME ZONE 'America/Fortaleza')::date)
+            ) planos ON true
+            WHERE (p.nome ILIKE %s ESCAPE '!' OR p.cpf LIKE %s)
+              AND (%s <> 'medico' OR EXISTS (
+                  SELECT 1 FROM agendamento a JOIN medico m USING (id_medico)
+                  WHERE a.id_paciente = p.id_paciente AND m.id_usuario = %s AND a.status <> 'cancelado'
+              ))
+            ORDER BY p.nome, p.id_paciente
             LIMIT 50
             """,
-            (f"%{nome}%", prefixo_cpf),
+            (f"%{nome}%", prefixo_cpf, user['perfil'], user['id_usuario']),
         ).fetchall()
