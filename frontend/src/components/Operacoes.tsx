@@ -72,7 +72,7 @@ export function AcaoAgendamento({ id, status, atualizar }: { id: string; status:
   }
 
   if (["cancelado", "realizado", "encerrado"].includes(status)) return null;
-  return <div>
+  return <div className="actions">
     {status === "pendente" && <button type="button" disabled={ocupado} onClick={() => alterar("confirmado")}>Confirmar</button>}
     {status !== "em_atendimento" && <button type="button" disabled={ocupado} onClick={() => alterar("em_atendimento")}>Iniciar</button>}
     {status === "em_atendimento"

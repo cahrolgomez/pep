@@ -74,7 +74,6 @@ export function AppLayout({
               {label}
             </NavLink>
           ))}
-          <NavLink to="/conta" className={({ isActive }) => (isActive ? "active" : "")}>Minha conta</NavLink>
         </nav>
         <div className="sidebar-footer">
           <button type="button" onClick={sair} disabled={saindo}>
@@ -91,10 +90,10 @@ export function AppLayout({
               / {medical ? "Área médica" : "Área administrativa"}
             </span>
           </span>
-          <span className="user">
+          <NavLink to="/conta" className="user" aria-label={usuario ? `Minha conta de ${usuario.name}` : "Minha conta"}>
             <span className="avatar" aria-hidden="true">{iniciais || "…"}</span>
             {usuario?.name ?? (erroUsuario ? "Não foi possível carregar o usuário" : "Carregando usuário…")}
-          </span>
+          </NavLink>
         </header>
         <main id="conteudo">{children}</main>
       </div>
